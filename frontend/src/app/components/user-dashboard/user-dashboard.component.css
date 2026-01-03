@@ -325,6 +325,21 @@
   font-size: 14px;
 }
 
+.email-update-group {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.email-update-group .form-control {
+  flex: 1;
+}
+
+.btn-small {
+  padding: 10px 20px;
+  font-size: 14px;
+}
+
 .danger-zone {
   background: #fef2f2;
   padding: 20px;

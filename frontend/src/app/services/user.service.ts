@@ -8,12 +8,23 @@ import { UserWithDeviceCount } from '../models/user.model';
 })
 export class UserService {
   private apiUrl = 'http://localhost:3000/api/users';
+  private debugUrl = 'http://localhost:3000/api/debug';
 
   constructor(private http: HttpClient) {}
 
   // Alle Benutzer abrufen (nur Admin)
   getAllUsers(): Observable<UserWithDeviceCount[]> {
     return this.http.get<UserWithDeviceCount[]>(this.apiUrl);
+  }
+
+  // Eigene Email aktualisieren
+  updateMyEmail(email: string): Observable<any> {
+    return this.http.put(`${this.apiUrl}/update-email`, { email });
+  }
+
+  // Admin: Benutzer-Email aktualisieren
+  updateUserEmail(userId: number, email: string): Observable<any> {
+    return this.http.put(`${this.apiUrl}/${userId}/update-email`, { email });
   }
 
   // Eigenes Konto deaktivieren
@@ -34,5 +45,15 @@ export class UserService {
   // Admin: Benutzer aktivieren/deaktivieren
   toggleUserActive(userId: number): Observable<any> {
     return this.http.put(`${this.apiUrl}/${userId}/toggle-active`, {});
+  }
+
+  // Admin: Test-Email senden
+  sendTestEmail(email: string): Observable<any> {
+    return this.http.post(`${this.debugUrl}/send-test-email`, { email });
+  }
+
+  // Admin: Email-Verbindung testen
+  testEmailConnection(): Observable<any> {
+    return this.http.get(`${this.debugUrl}/test-email-connection`);
   }
 }

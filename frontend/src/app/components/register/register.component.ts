@@ -16,8 +16,8 @@ export class RegisterComponent {
   registerData: RegisterRequest = {
     email: '',
     password: '',
-    vorname: '',
-    name: ''
+    first_name: '',
+    last_name: ''
   };
 
   confirmPassword = '';
@@ -32,7 +32,7 @@ export class RegisterComponent {
   onSubmit(): void {
     // Validierung
     if (!this.registerData.email || !this.registerData.password || 
-        !this.registerData.vorname || !this.registerData.name) {
+        !this.registerData.first_name || !this.registerData.last_name) {
       this.errorMessage = 'Bitte alle Felder ausfüllen';
       return;
     }

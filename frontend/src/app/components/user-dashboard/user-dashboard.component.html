@@ -1,11 +1,10 @@
 <div class="dashboard-container">
-  <!-- Header -->
   <div class="dashboard-header">
     <div class="header-content">
       <div>
         <h1>🚨 Meine Rettungsgeräte</h1>
         @if (currentUser) {
-          <p>Willkommen, {{ currentUser.vorname }} {{ currentUser.name }}</p>
+          <p>Willkommen, {{ currentUser.first_name }} {{ currentUser.last_name }}</p>
         }
       </div>
       <div class="header-actions">
@@ -15,29 +14,21 @@
     </div>
   </div>
 
-  <!-- Main Content -->
   <div class="dashboard-content">
     @if (message) {
-      <div [class]="'alert alert-' + messageType">
-        {{ message }}
-      </div>
+      <div [class]="'alert alert-' + messageType">{{ message }}</div>
     }
 
-    <!-- Action Bar -->
     <div class="action-bar">
-      <button (click)="openAddForm()" class="btn-primary">
-        ➕ Neues Gerät hinzufügen
-      </button>
+      <button (click)="openAddForm()" class="btn-primary">➕ Neues Gerät hinzufügen</button>
     </div>
 
-    <!-- Devices Grid -->
     @if (isLoadingDevices) {
       <div class="loading">Lade Geräte...</div>
     } @else if (devices.length === 0) {
       <div class="empty-state">
         <div class="empty-icon">📦</div>
         <h3>Noch keine Geräte registriert</h3>
-        <p>Fügen Sie Ihr erstes Rettungsgerät hinzu, um Erinnerungen zu erhalten.</p>
         <button (click)="openAddForm()" class="btn-primary">Jetzt hinzufügen</button>
       </div>
     } @else {
@@ -46,18 +37,14 @@
           <div class="device-card" [class]="getStatusClass(device)">
             <div class="device-header">
               <div>
-                <h3>{{ device.name }}</h3>
+                <h3>{{ device.device_name }}</h3>
                 @if (device.serial_number) {
                   <span class="serial-number">SN: {{ device.serial_number }}</span>
                 }
               </div>
               <div class="device-actions">
-                <button (click)="openEditForm(device)" class="btn-icon" title="Bearbeiten">
-                  ✏️
-                </button>
-                <button (click)="deleteDevice(device)" class="btn-icon btn-danger" title="Löschen">
-                  🗑️
-                </button>
+                <button (click)="openEditForm(device)" class="btn-icon">✏️</button>
+                <button (click)="deleteDevice(device)" class="btn-icon btn-danger">🗑️</button>
               </div>
             </div>
 
@@ -66,17 +53,14 @@
                 <span class="info-label">📅 Zuletzt gepackt:</span>
                 <span class="info-value">{{ device.last_packed | date: 'dd.MM.yyyy' }}</span>
               </div>
-
               <div class="info-row">
                 <span class="info-label">🔔 Nächste Überprüfung:</span>
                 <span class="info-value">{{ getNextDueDate(device) | date: 'dd.MM.yyyy' }}</span>
               </div>
-
               <div class="info-row">
                 <span class="info-label">⏱️ Intervall:</span>
                 <span class="info-value">{{ device.reminder_interval }} Monate</span>
               </div>
-
               <div class="info-row">
                 <span class="info-label">📧 Erinnerung:</span>
                 <span class="info-value">
@@ -87,18 +71,10 @@
                   }
                 </span>
               </div>
-
               @if (device.notes) {
                 <div class="info-row notes-row">
                   <span class="info-label">📝 Notizen:</span>
                   <span class="info-value notes-text">{{ device.notes }}</span>
-                </div>
-              }
-
-              @if (device.last_reminder) {
-                <div class="info-row">
-                  <span class="info-label">📬 Letzte Erinnerung:</span>
-                  <span class="info-value">{{ device.last_reminder | date: 'dd.MM.yyyy' }}</span>
                 </div>
               }
             </div>
@@ -112,7 +88,7 @@
     }
   </div>
 
-  <!-- Modal for Add/Edit Device -->
+  <!-- Modal: Add/Edit Device -->
   @if (showAddForm) {
     <div class="modal-overlay" (click)="closeForm()">
       <div class="modal-content modal-large" (click)="$event.stopPropagation()">
@@ -124,16 +100,7 @@
         <form (ngSubmit)="onSubmit()" #deviceFormElem="ngForm">
           <div class="form-group">
             <label for="name">Gerätename *</label>
-            <input
-              type="text"
-              id="name"
-              name="name"
-              [(ngModel)]="deviceForm.name"
-              required
-              #name="ngModel"
-              class="form-control"
-              placeholder="z.B. Notfallrucksack, Erste-Hilfe-Koffer"
-            />
+            <input type="text" id="name" name="name" [(ngModel)]="deviceForm.name" required #name="ngModel" class="form-control" />
             @if (name.invalid && name.touched) {
               <div class="error-text">Gerätename ist erforderlich</div>
             }
@@ -141,41 +108,17 @@
 
           <div class="form-group">
             <label for="serial_number">Seriennummer</label>
-            <input
-              type="text"
-              id="serial_number"
-              name="serial_number"
-              [(ngModel)]="deviceForm.serial_number"
-              class="form-control"
-              placeholder="z.B. ABC-123456"
-            />
+            <input type="text" id="serial_number" name="serial_number" [(ngModel)]="deviceForm.serial_number" class="form-control" />
           </div>
 
           <div class="form-group">
             <label for="last_packed">Zuletzt gepackt *</label>
-            <input
-              type="date"
-              id="last_packed"
-              name="last_packed"
-              [(ngModel)]="deviceForm.last_packed"
-              required
-              #lastPacked="ngModel"
-              class="form-control"
-            />
-            @if (lastPacked.invalid && lastPacked.touched) {
-              <div class="error-text">Datum ist erforderlich</div>
-            }
+            <input type="date" id="last_packed" name="last_packed" [(ngModel)]="deviceForm.last_packed" required #lastPacked="ngModel" class="form-control" />
           </div>
 
           <div class="form-group">
             <label for="reminder_interval">Erinnerungsintervall *</label>
-            <select
-              id="reminder_interval"
-              name="reminder_interval"
-              [(ngModel)]="deviceForm.reminder_interval"
-              required
-              class="form-control"
-            >
+            <select id="reminder_interval" name="reminder_interval" [(ngModel)]="deviceForm.reminder_interval" required class="form-control">
               @for (interval of reminderIntervals; track interval.value) {
                 <option [value]="interval.value">{{ interval.label }}</option>
               }
@@ -184,44 +127,20 @@
 
           <div class="form-group">
             <label class="checkbox-label">
-              <input
-                type="checkbox"
-                name="reminder_enabled"
-                [(ngModel)]="deviceForm.reminder_enabled"
-              />
+              <input type="checkbox" name="reminder_enabled" [(ngModel)]="deviceForm.reminder_enabled" />
               <span>Email-Erinnerungen aktiviert</span>
             </label>
-            <small class="form-hint">
-              Wenn aktiviert, erhalten Sie automatisch Erinnerungen alle {{ deviceForm.reminder_interval }} Monate
-            </small>
           </div>
 
           <div class="form-group">
             <label for="notes">Notizen</label>
-            <textarea
-              id="notes"
-              name="notes"
-              [(ngModel)]="deviceForm.notes"
-              class="form-control"
-              rows="4"
-              placeholder="Zusätzliche Informationen, Checkliste, etc."
-            ></textarea>
+            <textarea id="notes" name="notes" [(ngModel)]="deviceForm.notes" class="form-control" rows="4"></textarea>
           </div>
 
           <div class="modal-actions">
-            <button type="button" (click)="closeForm()" class="btn-secondary">
-              Abbrechen
-            </button>
-            <button 
-              type="submit" 
-              [disabled]="deviceFormElem.invalid || isLoading"
-              class="btn-primary"
-            >
-              @if (isLoading) {
-                <span>Wird gespeichert...</span>
-              } @else {
-                <span>{{ editingDevice ? 'Aktualisieren' : 'Hinzufügen' }}</span>
-              }
+            <button type="button" (click)="closeForm()" class="btn-secondary">Abbrechen</button>
+            <button type="submit" [disabled]="deviceFormElem.invalid || isLoading" class="btn-primary">
+              {{ editingDevice ? 'Aktualisieren' : 'Hinzufügen' }}
             </button>
           </div>
         </form>
@@ -229,7 +148,7 @@
     </div>
   }
 
-  <!-- Modal for Account Settings -->
+  <!-- Modal: Account Settings -->
   @if (showAccountSettings) {
     <div class="modal-overlay" (click)="closeAccountSettings()">
       <div class="modal-content" (click)="$event.stopPropagation()">
@@ -242,47 +161,39 @@
           <div class="setting-section">
             <h3>Benutzerdaten</h3>
             @if (currentUser) {
-              <p><strong>Name:</strong> {{ currentUser.vorname }} {{ currentUser.name }}</p>
-              <p><strong>Email:</strong> {{ currentUser.email }}</p>
-              <p><strong>Status:</strong> 
-                @if (currentUser.is_active) {
-                  <span class="badge-active">Aktiv</span>
-                } @else {
-                  <span class="badge-inactive">Deaktiviert</span>
-                }
-              </p>
+              <p><strong>Name:</strong> {{ currentUser.first_name }} {{ currentUser.last_name }}</p>
+              
+              <div class="form-group">
+                <label for="email">Email-Adresse</label>
+                <div class="email-update-group">
+                  <input type="email" id="email" [(ngModel)]="newEmail" class="form-control" />
+                  <button (click)="updateEmail()" class="btn-primary btn-small">Ändern</button>
+                </div>
+              </div>
             }
           </div>
 
           <div class="setting-section danger-zone">
             <h3>⚠️ Gefahrenbereich</h3>
-            
             <div class="danger-action">
               <div>
                 <strong>Konto deaktivieren</strong>
-                <p>Sie können sich danach nicht mehr anmelden. Ihre Daten bleiben erhalten.</p>
+                <p>Sie können sich danach nicht mehr anmelden.</p>
               </div>
-              <button (click)="deactivateAccount()" class="btn-warning">
-                Deaktivieren
-              </button>
+              <button (click)="deactivateAccount()" class="btn-warning">Deaktivieren</button>
             </div>
-
             <div class="danger-action">
               <div>
                 <strong>Konto löschen</strong>
-                <p>Löscht Ihr Konto und ALLE Geräte permanent. Diese Aktion kann nicht rückgängig gemacht werden!</p>
+                <p>Löscht Ihr Konto und ALLE Geräte permanent!</p>
               </div>
-              <button (click)="deleteAccount()" class="btn-danger">
-                Konto löschen
-              </button>
+              <button (click)="deleteAccount()" class="btn-danger">Konto löschen</button>
             </div>
           </div>
         </div>
 
         <div class="modal-actions">
-          <button (click)="closeAccountSettings()" class="btn-secondary">
-            Schließen
-          </button>
+          <button (click)="closeAccountSettings()" class="btn-secondary">Schließen</button>
         </div>
       </div>
     </div>

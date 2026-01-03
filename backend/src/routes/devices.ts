@@ -20,8 +20,8 @@ router.get('/', authenticateToken, (req: AuthRequest, res) => {
 // Alle Geräte aller Benutzer (nur Admin)
 router.get('/all', authenticateToken, isAdmin, (req: AuthRequest, res) => {
   const sql = `
-    SELECT d.*, u.email as user_email, u.vorname as user_vorname, 
-           u.name as user_name, u.is_active as user_is_active
+    SELECT d.*, u.email as user_email, u.first_name as user_first_name, 
+           u.last_name as user_last_name, u.is_active as user_is_active
     FROM devices d
     JOIN users u ON d.user_id = u.id
     ORDER BY d.last_packed DESC
@@ -40,8 +40,8 @@ router.get('/user/:userId', authenticateToken, isAdmin, (req: AuthRequest, res) 
   const userId = req.params.userId;
 
   const sql = `
-    SELECT d.*, u.email as user_email, u.vorname as user_vorname, 
-           u.name as user_name, u.is_active as user_is_active
+    SELECT d.*, u.email as user_email, u.first_name as user_first_name, 
+           u.last_name as user_last_name, u.is_active as user_is_active
     FROM devices d
     JOIN users u ON d.user_id = u.id
     WHERE d.user_id = ?
@@ -70,7 +70,7 @@ router.post('/', authenticateToken, (req: AuthRequest, res) => {
     });
   }
 
-  const sql = `INSERT INTO devices (user_id, name, serial_number, notes, last_packed, 
+  const sql = `INSERT INTO devices (user_id, device_name, serial_number, notes, last_packed, 
                                      reminder_interval, reminder_enabled) 
                VALUES (?, ?, ?, ?, ?, ?, ?)`;
 
@@ -105,13 +105,13 @@ router.put('/:id', authenticateToken, (req: AuthRequest, res) => {
     return res.status(400).json({ error: 'Name, Packdatum und Intervall sind erforderlich' });
   }
 
-  if (!['6', '9', '12'].includes(reminder_interval)) {
+  if (![6, 9, 12].includes(reminder_interval)) {
     return res.status(400).json({ 
       error: 'Erinnerungsintervall muss 6, 9 oder 12 Monate sein' 
     });
   }
 
-  // Prüfen ob Gerät existiert und Berechtigung
+  // Prüfen ob Gerät existiert und alte Daten abrufen
   db.get(
     'SELECT * FROM devices WHERE id = ?',
     [deviceId],
@@ -130,26 +130,41 @@ router.put('/:id', authenticateToken, (req: AuthRequest, res) => {
       }
 
       const reminderEnabledValue = reminder_enabled === false ? 0 : 1;
+      
+      // Prüfe ob Packdatum geändert wurde
+      const packDateChanged = device.last_packed !== last_packed;
+      
+      let sql: string;
+      let params: any[];
 
-      const sql = `UPDATE devices 
-                   SET name = ?, serial_number = ?, notes = ?, last_packed = ?, 
-                       reminder_interval = ?, reminder_enabled = ?
-                   WHERE id = ?`;
+      if (packDateChanged) {
+        // Packdatum wurde geändert -> Reminder-Flags zurücksetzen
+        sql = `UPDATE devices 
+               SET device_name = ?, serial_number = ?, notes = ?, last_packed = ?, 
+                   reminder_interval = ?, reminder_enabled = ?,
+                   first_reminder_sent = NULL, second_reminder_sent = NULL
+               WHERE id = ?`;
+        params = [name, serial_number || null, notes || null, last_packed, 
+                  reminder_interval, reminderEnabledValue, deviceId];
+      } else {
+        // Packdatum unverändert -> Reminder-Flags behalten
+        sql = `UPDATE devices 
+               SET device_name = ?, serial_number = ?, notes = ?, last_packed = ?, 
+                   reminder_interval = ?, reminder_enabled = ?
+               WHERE id = ?`;
+        params = [name, serial_number || null, notes || null, last_packed, 
+                  reminder_interval, reminderEnabledValue, deviceId];
+      }
 
-      db.run(sql, [
-        name, 
-        serial_number || null, 
-        notes || null, 
-        last_packed, 
-        reminder_interval, 
-        reminderEnabledValue,
-        deviceId
-      ], (err) => {
+      db.run(sql, params, (err) => {
         if (err) {
           return res.status(500).json({ error: err.message });
         }
 
-        res.json({ message: 'Gerät erfolgreich aktualisiert' });
+        res.json({ 
+          message: 'Gerät erfolgreich aktualisiert',
+          reminders_reset: packDateChanged
+        });
       });
     }
   );
@@ -159,7 +174,6 @@ router.put('/:id', authenticateToken, (req: AuthRequest, res) => {
 router.delete('/:id', authenticateToken, (req: AuthRequest, res) => {
   const deviceId = req.params.id;
 
-  // Prüfen ob Gerät existiert
   db.get(
     'SELECT * FROM devices WHERE id = ?',
     [deviceId],
@@ -172,7 +186,6 @@ router.delete('/:id', authenticateToken, (req: AuthRequest, res) => {
         return res.status(404).json({ error: 'Gerät nicht gefunden' });
       }
 
-      // Nur Admin oder Owner darf löschen
       if (!req.user!.is_admin && device.user_id !== req.user!.id) {
         return res.status(403).json({ error: 'Keine Berechtigung' });
       }

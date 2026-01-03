@@ -14,35 +14,35 @@
     <form (ngSubmit)="onSubmit()" #registerForm="ngForm">
       <div class="form-row">
         <div class="form-group">
-          <label for="vorname">Vorname *</label>
+          <label for="first_name">Vorname *</label>
           <input
             type="text"
-            id="vorname"
-            name="vorname"
-            [(ngModel)]="registerData.vorname"
+            id="first_name"
+            name="first_name"
+            [(ngModel)]="registerData.first_name"
             required
-            #vorname="ngModel"
+            #firstName="ngModel"
             class="form-control"
             placeholder="Max"
           />
-          @if (vorname.invalid && vorname.touched) {
+          @if (firstName.invalid && firstName.touched) {
             <div class="error-text">Vorname ist erforderlich</div>
           }
         </div>
 
         <div class="form-group">
-          <label for="name">Nachname *</label>
+          <label for="last_name">Nachname *</label>
           <input
             type="text"
-            id="name"
-            name="name"
-            [(ngModel)]="registerData.name"
+            id="last_name"
+            name="last_name"
+            [(ngModel)]="registerData.last_name"
             required
-            #name="ngModel"
+            #lastName="ngModel"
             class="form-control"
             placeholder="Mustermann"
           />
-          @if (name.invalid && name.touched) {
+          @if (lastName.invalid && lastName.touched) {
             <div class="error-text">Nachname ist erforderlich</div>
           }
         </div>

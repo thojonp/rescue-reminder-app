@@ -21,12 +21,13 @@ export class UserDashboardComponent implements OnInit {
   showAddForm = false;
   showAccountSettings = false;
   editingDevice: Device | null = null;
+  newEmail = '';
 
   deviceForm: DeviceFormData = {
     name: '',
     serial_number: '',
     notes: '',
-    last_packed: '',
+    last_packed: new Date().toISOString().split('T')[0],
     reminder_interval: 12,
     reminder_enabled: true
   };
@@ -51,31 +52,26 @@ export class UserDashboardComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    console.log('Dashboard initialisiert');
-    
     this.authService.currentUser$.subscribe(user => {
-      console.log('Current user:', user);
       this.currentUser = user;
+      if (user) {
+        this.newEmail = user.email;
+      }
     });
-
     this.loadDevices();
   }
 
   loadDevices(): void {
-    console.log('Starte Laden der Geräte...');
     this.isLoadingDevices = true;
     
     this.deviceService.getMyDevices().subscribe({
       next: (devices) => {
-        console.log('✅ Geräte erfolgreich geladen:', devices);
         this.devices = [...devices];
         this.isLoadingDevices = false;
         this.cdr.detectChanges();
-        console.log('View aktualisiert, Anzahl Geräte:', this.devices.length);
       },
       error: (error) => {
-        console.error('❌ Fehler beim Laden der Geräte:', error);
-        this.showMessage('Fehler beim Laden der Geräte: ' + (error.error?.error || error.message), 'error');
+        this.showMessage('Fehler beim Laden der Geräte', 'error');
         this.isLoadingDevices = false;
         this.devices = [];
         this.cdr.detectChanges();
@@ -93,12 +89,12 @@ export class UserDashboardComponent implements OnInit {
     this.editingDevice = device;
     this.showAddForm = true;
     this.deviceForm = {
-      name: device.name,
+      name: device.device_name,
       serial_number: device.serial_number || '',
       notes: device.notes || '',
       last_packed: device.last_packed.split('T')[0],
-      reminder_interval: device.reminder_interval,
-      reminder_enabled: device.reminder_enabled
+      reminder_interval: device.reminder_interval || 12,
+      reminder_enabled: device.reminder_enabled !== false
     };
   }
 
@@ -157,7 +153,7 @@ export class UserDashboardComponent implements OnInit {
   }
 
   deleteDevice(device: Device): void {
-    if (!confirm(`Möchten Sie "${device.name}" wirklich löschen?`)) {
+    if (!confirm(`Möchten Sie "${device.device_name}" wirklich löschen?`)) {
       return;
     }
 
@@ -174,46 +170,65 @@ export class UserDashboardComponent implements OnInit {
 
   openAccountSettings(): void {
     this.showAccountSettings = true;
+    if (this.currentUser) {
+      this.newEmail = this.currentUser.email;
+    }
   }
 
   closeAccountSettings(): void {
     this.showAccountSettings = false;
   }
 
+  updateEmail(): void {
+    if (!this.newEmail || !this.newEmail.includes('@')) {
+      this.showMessage('Bitte gültige Email-Adresse eingeben', 'error');
+      return;
+    }
+
+    this.userService.updateMyEmail(this.newEmail).subscribe({
+      next: () => {
+        this.showMessage('Email erfolgreich aktualisiert', 'success');
+        if (this.currentUser) {
+          this.currentUser.email = this.newEmail;
+          localStorage.setItem('currentUser', JSON.stringify(this.currentUser));
+        }
+      },
+      error: (error) => {
+        this.showMessage(error.error?.error || 'Fehler beim Aktualisieren', 'error');
+      }
+    });
+  }
+
   deactivateAccount(): void {
-    if (!confirm('Möchten Sie Ihr Konto wirklich deaktivieren? Sie können sich danach nicht mehr anmelden.')) {
+    if (!confirm('Möchten Sie Ihr Konto wirklich deaktivieren?')) {
       return;
     }
 
     this.userService.deactivateMyAccount().subscribe({
       next: () => {
-        alert('Ihr Konto wurde deaktiviert. Sie werden jetzt abgemeldet.');
+        alert('Ihr Konto wurde deaktiviert.');
         this.authService.logout();
         this.router.navigate(['/login']);
       },
       error: (error) => {
-        this.showMessage(error.error?.error || 'Fehler beim Deaktivieren', 'error');
+        this.showMessage(error.error?.error || 'Fehler', 'error');
       }
     });
   }
 
   deleteAccount(): void {
-    if (!confirm('ACHTUNG: Möchten Sie Ihr Konto und ALLE Geräte wirklich dauerhaft löschen? Diese Aktion kann nicht rückgängig gemacht werden!')) {
-      return;
-    }
-
-    if (!confirm('Sind Sie absolut sicher? Alle Ihre Daten werden unwiderruflich gelöscht!')) {
+    if (!confirm('ACHTUNG: Konto und ALLE Geräte löschen?')) {
       return;
     }
 
     this.userService.deleteMyAccount().subscribe({
       next: () => {
-        alert('Ihr Konto und alle Geräte wurden gelöscht.');
+        alert('Ihr Konto wurde gelöscht.');
         this.authService.logout();
         this.router.navigate(['/login']);
       },
       error: (error) => {
-        this.showMessage(error.error?.error || 'Fehler beim Löschen', 'error');
+        this.showMessage(error.error?.error || 'Fehler', 'error');
       }
     });
   }

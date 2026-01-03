@@ -12,7 +12,7 @@ export function startReminderJob() {
 
     // Nur aktive Benutzer mit aktivierten Erinnerungen
     const sql = `
-      SELECT d.*, u.email, u.vorname, u.name
+      SELECT d.*, u.email as user_email, u.first_name as user_first_name, u.last_name as user_last_name
       FROM devices d
       JOIN users u ON d.user_id = u.id
       WHERE u.is_active = 1 AND d.reminder_enabled = 1
@@ -24,103 +24,97 @@ export function startReminderJob() {
         return;
       }
 
-      let sentCount = 0;
+      let firstRemindersSent = 0;
+      let secondRemindersSent = 0;
       let skippedCount = 0;
 
       for (const device of rows) {
         const lastPackedDate = new Date(device.last_packed);
         const dueDate = new Date(lastPackedDate);
         dueDate.setMonth(dueDate.getMonth() + device.reminder_interval);
+        
+        // Datum für zweite Erinnerung (1 Monat nach Fälligkeit)
+        const secondReminderDate = new Date(dueDate);
+        secondReminderDate.setMonth(secondReminderDate.getMonth() + 1);
 
-        const shouldSendReminder = now >= dueDate && 
-          (!device.last_reminder || new Date(device.last_reminder) < dueDate);
-
-        if (shouldSendReminder) {
+        // Erste Erinnerung: Fälligkeitsdatum erreicht und noch nicht gesendet
+        if (now >= dueDate && !device.first_reminder_sent) {
           try {
             await sendReminderEmail(
               device.user_email!,
-              device.user_vorname!,
-              device.user_name!,
-              device.name,
+              device.user_first_name!,
+              device.user_last_name!,
+              device.device_name,
               device.last_packed,
-              device.reminder_interval
+              device.reminder_interval,
+              1 // Erste Erinnerung
             );
 
-            const updateSql = 'UPDATE devices SET last_reminder = ? WHERE id = ?';
+            const updateSql = 'UPDATE devices SET first_reminder_sent = ? WHERE id = ?';
             db.run(updateSql, [now.toISOString(), device.id], (updateErr) => {
               if (updateErr) {
                 console.error(`❌ Fehler beim Aktualisieren von Gerät ${device.id}:`, updateErr);
               }
             });
 
-            sentCount++;
-            console.log(`✅ Erinnerung gesendet für Gerät "${device.name}" an ${device.user_email}`);
+            firstRemindersSent++;
+            console.log(`✅ Erste Erinnerung gesendet für "${device.device_name}" an ${device.user_email}`);
 
           } catch (error) {
-            console.error(`❌ Fehler beim Senden der Email an ${device.user_email}:`, error);
+            console.error(`❌ Fehler beim Senden an ${device.user_email}:`, error);
+          }
+        }
+        // Zweite Erinnerung: 1 Monat nach Fälligkeit und erste Erinnerung bereits gesendet
+        else if (now >= secondReminderDate && device.first_reminder_sent && !device.second_reminder_sent) {
+          try {
+            await sendReminderEmail(
+              device.user_email!,
+              device.user_first_name!,
+              device.user_last_name!,
+              device.device_name,
+              device.last_packed,
+              device.reminder_interval,
+              2 // Zweite Erinnerung
+            );
+
+            const updateSql = 'UPDATE devices SET second_reminder_sent = ? WHERE id = ?';
+            db.run(updateSql, [now.toISOString(), device.id], (updateErr) => {
+              if (updateErr) {
+                console.error(`❌ Fehler beim Aktualisieren von Gerät ${device.id}:`, updateErr);
+              }
+            });
+
+            secondRemindersSent++;
+            console.log(`✅ Zweite Erinnerung gesendet für "${device.device_name}" an ${device.user_email}`);
+
+          } catch (error) {
+            console.error(`❌ Fehler beim Senden an ${device.user_email}:`, error);
           }
         } else {
           skippedCount++;
         }
       }
 
-      if (sentCount > 0) {
-        console.log(`✅ ${sentCount} Erinnerung(en) erfolgreich gesendet`);
+      if (firstRemindersSent > 0) {
+        console.log(`✅ ${firstRemindersSent} erste Erinnerung(en) gesendet`);
+      }
+      
+      if (secondRemindersSent > 0) {
+        console.log(`✅ ${secondRemindersSent} zweite Erinnerung(en) gesendet`);
       }
       
       if (skippedCount > 0) {
-        console.log(`ℹ️  ${skippedCount} Gerät(e) noch nicht fällig oder Erinnerung deaktiviert`);
+        console.log(`ℹ️  ${skippedCount} Gerät(e) noch nicht fällig oder bereits erinnert`);
       }
       
-      if (sentCount === 0 && skippedCount === 0) {
+      if (firstRemindersSent === 0 && secondRemindersSent === 0 && skippedCount === 0) {
         console.log('ℹ️  Keine Geräte mit aktivierten Erinnerungen registriert');
       }
     });
   });
 
   console.log('⏰ Erinnerungs-Job gestartet (täglich um 9:00 Uhr)');
-  console.log('💡 Tipp: Zum Testen Zeitplan anpassen, z.B. "*/5 * * * *" für alle 5 Minuten');
-}
-
-// Optional: Manuelle Ausführung für Tests
-export async function runReminderJobNow() {
-  console.log('🧪 Führe Erinnerungs-Job manuell aus...');
-  
-  const now = new Date();
-  const sql = `
-    SELECT d.*, u.email, u.vorname, u.name, u.is_active
-    FROM devices d
-    JOIN users u ON d.user_id = u.id
-  `;
-
-  return new Promise((resolve, reject) => {
-    db.all(sql, [], async (err, rows: DeviceWithUser[]) => {
-      if (err) {
-        reject(err);
-        return;
-      }
-
-      let results = [];
-      
-      for (const device of rows) {
-        const lastPackedDate = new Date(device.last_packed);
-        const dueDate = new Date(lastPackedDate);
-        dueDate.setMonth(dueDate.getMonth() + device.reminder_interval);
-
-        results.push({
-          device: device.name,
-          user: device.user_email,
-          user_active: device.user_is_active,
-          reminder_enabled: device.reminder_enabled,
-          last_packed: device.last_packed,
-          due_date: dueDate.toISOString(),
-          is_due: now >= dueDate,
-          will_send: now >= dueDate && device.user_is_active && device.reminder_enabled,
-          last_reminder: device.last_reminder || 'noch nie'
-        });
-      }
-
-      resolve(results);
-    });
-  });
+  console.log('📧 Erste Erinnerung: Bei Fälligkeit');
+  console.log('📧 Zweite Erinnerung: 1 Monat nach Fälligkeit');
+  console.log('🔄 Reset: Bei Änderung des Packdatums');
 }

@@ -1,8 +1,8 @@
 export interface User {
   id: number;
   email: string;
-  vorname: string;
-  name: string;
+  first_name: string;
+  last_name: string;
   is_admin: boolean;
   is_active: boolean;
 }
@@ -15,8 +15,8 @@ export interface LoginRequest {
 export interface RegisterRequest {
   email: string;
   password: string;
-  vorname: string;
-  name: string;
+  first_name: string;
+  last_name: string;
 }
 
 export interface AuthResponse {

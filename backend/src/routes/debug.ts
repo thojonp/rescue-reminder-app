@@ -1,12 +1,13 @@
 import { Router } from 'express';
 import db from '../config/database';
-import { authenticateToken, AuthRequest } from '../middleware/auth';
+import { authenticateToken, isAdmin, AuthRequest } from '../middleware/auth';
+import { sendTestEmail, testEmailConnection } from '../services/emailService';
 
 const router = Router();
 
 // Debug-Endpoint: Zeigt aktuellen User und Token-Info
 router.get('/whoami', authenticateToken, (req: AuthRequest, res) => {
-  const sql = 'SELECT id, email, vorname, name, is_admin, is_active FROM users WHERE id = ?';
+  const sql = 'SELECT id, email, first_name, last_name, is_admin, is_active FROM users WHERE id = ?';
   
   db.get(sql, [req.user!.id], (err, user: any) => {
     if (err) {
@@ -28,7 +29,7 @@ router.get('/whoami', authenticateToken, (req: AuthRequest, res) => {
 
 // Debug-Endpoint: Liste aller User mit Admin-Status
 router.get('/users', (req, res) => {
-  const sql = 'SELECT id, email, vorname, name, is_admin, is_active FROM users';
+  const sql = 'SELECT id, email, first_name, last_name, is_admin, is_active FROM users';
   
   db.all(sql, [], (err, users: any[]) => {
     if (err) {
@@ -43,6 +44,47 @@ router.get('/users', (req, res) => {
       }))
     });
   });
+});
+
+// Test Email-Verbindung (nur Admin)
+router.get('/test-email-connection', authenticateToken, isAdmin, async (req: AuthRequest, res) => {
+  try {
+    const connected = await testEmailConnection();
+    res.json({
+      success: connected,
+      message: connected ? 'Email-Server erfolgreich verbunden' : 'Verbindung zum Email-Server fehlgeschlagen'
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      message: 'Fehler beim Testen der Email-Verbindung',
+      error: error.message
+    });
+  }
+});
+
+// Test-Email senden (nur Admin)
+router.post('/send-test-email', authenticateToken, isAdmin, async (req: AuthRequest, res) => {
+  const { email } = req.body;
+
+  if (!email) {
+    return res.status(400).json({ error: 'Email-Adresse ist erforderlich' });
+  }
+
+  try {
+    await sendTestEmail(email, 'Rettungsgerät Management System');
+    res.json({
+      success: true,
+      message: `Test-Email erfolgreich an ${email} gesendet`
+    });
+  } catch (error: any) {
+    console.error('Test-Email Fehler:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Fehler beim Senden der Test-Email',
+      error: error.message
+    });
+  }
 });
 
 export default router;
