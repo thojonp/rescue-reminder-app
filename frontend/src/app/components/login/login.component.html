@@ -1,0 +1,72 @@
+<div class="login-container">
+  <div class="login-card">
+    <div class="login-header">
+      <h1>🚨 Rettungsgerät Management</h1>
+      <p>Melden Sie sich an, um fortzufahren</p>
+    </div>
+
+    @if (errorMessage) {
+      <div class="alert alert-error">
+        {{ errorMessage }}
+      </div>
+    }
+
+    <form (ngSubmit)="onSubmit()" #loginForm="ngForm">
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input
+          type="email"
+          id="email"
+          name="email"
+          [(ngModel)]="loginData.email"
+          required
+          email
+          #email="ngModel"
+          class="form-control"
+          placeholder="ihre@email.com"
+        />
+        @if (email.invalid && email.touched) {
+          <div class="error-text">Gültige Email ist erforderlich</div>
+        }
+      </div>
+
+      <div class="form-group">
+        <label for="password">Passwort</label>
+        <input
+          type="password"
+          id="password"
+          name="password"
+          [(ngModel)]="loginData.password"
+          required
+          #password="ngModel"
+          class="form-control"
+          placeholder="••••••••"
+        />
+        @if (password.invalid && password.touched) {
+          <div class="error-text">Passwort ist erforderlich</div>
+        }
+      </div>
+
+      <button 
+        type="submit" 
+        [disabled]="loginForm.invalid || isLoading"
+        class="btn-primary btn-block"
+      >
+        @if (isLoading) {
+          <span>Wird angemeldet...</span>
+        } @else {
+          <span>Anmelden</span>
+        }
+      </button>
+    </form>
+
+    <div class="login-footer">
+      <p>Noch kein Konto? <a routerLink="/register">Jetzt registrieren</a></p>
+    </div>
+
+    <div class="demo-credentials">
+      <p><strong>Demo-Zugang:</strong></p>
+      <p>Admin: admin@rescue.com / admin123</p>
+    </div>
+  </div>
+</div>

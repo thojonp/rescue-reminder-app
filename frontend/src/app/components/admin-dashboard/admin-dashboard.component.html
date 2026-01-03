@@ -1,0 +1,413 @@
+<div class="admin-container">
+  <!-- Header -->
+  <div class="admin-header">
+    <div class="header-content">
+      <div>
+        <h1>👑 Admin Dashboard</h1>
+        <p>Übersicht aller Benutzer und Rettungsgeräte</p>
+      </div>
+      <div class="header-actions">
+        <button (click)="goToUserDashboard()" class="btn-secondary">📦 Meine Geräte</button>
+        <button (click)="logout()" class="btn-secondary">Abmelden</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="admin-content">
+    @if (message) {
+      <div [class]="'alert alert-' + messageType">
+        {{ message }}
+      </div>
+    }
+
+    <!-- Statistics -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon">👥</div>
+        <div class="stat-info">
+          <div class="stat-value">{{ getActiveUsers() }}/{{ users.length }}</div>
+          <div class="stat-label">Aktive Benutzer</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon">📦</div>
+        <div class="stat-info">
+          <div class="stat-value">{{ getActiveDevices() }}/{{ getTotalDevices() }}</div>
+          <div class="stat-label">Aktive Geräte</div>
+        </div>
+      </div>
+
+      <div class="stat-card stat-warning">
+        <div class="stat-icon">⚠️</div>
+        <div class="stat-info">
+          <div class="stat-value">{{ getUpcomingDevices() }}</div>
+          <div class="stat-label">Bald fällig</div>
+        </div>
+      </div>
+
+      <div class="stat-card stat-danger">
+        <div class="stat-icon">🚨</div>
+        <div class="stat-info">
+          <div class="stat-value">{{ getOverdueDevices() }}</div>
+          <div class="stat-label">Überfällig</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button 
+        [class.active]="activeTab === 'devices'"
+        (click)="switchTab('devices')"
+        class="tab-button"
+      >
+        📦 Alle Geräte ({{ devices.length }})
+      </button>
+      <button 
+        [class.active]="activeTab === 'users'"
+        (click)="switchTab('users')"
+        class="tab-button"
+      >
+        👥 Benutzer ({{ users.length }})
+      </button>
+    </div>
+
+    <!-- Devices Tab -->
+    @if (activeTab === 'devices') {
+      <div class="tab-content">
+        <!-- Filter -->
+        <div class="filter-bar">
+          <label>Filter nach Benutzer:</label>
+          <select (change)="filterByUser($any($event.target).value ? +$any($event.target).value : null)" class="filter-select">
+            <option [value]="null">Alle Benutzer</option>
+            @for (user of users; track user.id) {
+              <option [value]="user.id">{{ user.vorname }} {{ user.name }} ({{ user.device_count }})</option>
+            }
+          </select>
+        </div>
+
+        @if (isLoadingDevices) {
+          <div class="loading">Lade Geräte...</div>
+        } @else if (filteredDevices.length === 0) {
+          <div class="empty-state">
+            <p>Keine Geräte gefunden</p>
+          </div>
+        } @else {
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Gerät</th>
+                  <th>Seriennummer</th>
+                  <th>Benutzer</th>
+                  <th>Zuletzt gepackt</th>
+                  <th>Nächste Überprüfung</th>
+                  <th>Intervall</th>
+                  <th>Erinnerung</th>
+                  <th>Status</th>
+                  <th>Aktionen</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (device of filteredDevices; track device.id) {
+                  <tr [class]="getStatusClass(device)">
+                    <td class="device-name">
+                      {{ device.name }}
+                      @if (device.notes) {
+                        <span class="has-notes" title="{{ device.notes }}">📝</span>
+                      }
+                    </td>
+                    <td class="serial-cell">
+                      @if (device.serial_number) {
+                        <code>{{ device.serial_number }}</code>
+                      } @else {
+                        <span class="text-muted">-</span>
+                      }
+                    </td>
+                    <td>
+                      <div class="user-info">
+                        <div class="user-name">{{ device.user_vorname }} {{ device.user_name }}</div>
+                        <div class="user-email">{{ device.user_email }}</div>
+                        @if (!device.user_is_active) {
+                          <span class="badge-inactive">Inaktiv</span>
+                        }
+                      </div>
+                    </td>
+                    <td>{{ device.last_packed | date: 'dd.MM.yyyy' }}</td>
+                    <td>{{ getNextDueDate(device) | date: 'dd.MM.yyyy' }}</td>
+                    <td>{{ device.reminder_interval }} Monate</td>
+                    <td>
+                      @if (device.reminder_enabled) {
+                        <span class="badge-active">Ein</span>
+                      } @else {
+                        <span class="badge-inactive">Aus</span>
+                      }
+                    </td>
+                    <td>
+                      <span class="status-badge">{{ getStatusText(device) }}</span>
+                    </td>
+                    <td class="actions-cell">
+                      <button (click)="openEditDevice(device)" class="btn-icon-small" title="Bearbeiten">
+                        ✏️
+                      </button>
+                      <button (click)="deleteDevice(device)" class="btn-icon-small btn-danger" title="Löschen">
+                        🗑️
+                      </button>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Users Tab -->
+    @if (activeTab === 'users') {
+      <div class="tab-content">
+        @if (isLoadingUsers) {
+          <div class="loading">Lade Benutzer...</div>
+        } @else if (users.length === 0) {
+          <div class="empty-state">
+            <p>Noch keine Benutzer registriert</p>
+          </div>
+        } @else {
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Rolle</th>
+                  <th>Status</th>
+                  <th>Geräte</th>
+                  <th>Registriert</th>
+                  <th>Aktionen</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (user of users; track user.id) {
+                  <tr>
+                    <td class="user-name-cell">{{ user.vorname }} {{ user.name }}</td>
+                    <td>{{ user.email }}</td>
+                    <td>
+                      @if (user.is_admin) {
+                        <span class="role-badge admin">Admin</span>
+                      } @else {
+                        <span class="role-badge user">Benutzer</span>
+                      }
+                    </td>
+                    <td>
+                      @if (user.is_active) {
+                        <span class="badge-active">Aktiv</span>
+                      } @else {
+                        <span class="badge-inactive">Inaktiv</span>
+                      }
+                    </td>
+                    <td class="text-center">
+                      @if (user.device_count > 0) {
+                        <button (click)="viewUserDevices(user)" class="device-count-btn">
+                          {{ user.device_count }}
+                        </button>
+                      } @else {
+                        <span class="text-muted">0</span>
+                      }
+                    </td>
+                    <td>{{ user.created_at | date: 'dd.MM.yyyy' }}</td>
+                    <td class="actions-cell">
+                      @if (!user.is_admin) {
+                        <button 
+                          (click)="toggleUserActive(user)" 
+                          class="btn-icon-small"
+                          [title]="user.is_active ? 'Deaktivieren' : 'Aktivieren'"
+                        >
+                          @if (user.is_active) {
+                            <span>⏸️</span>
+                          } @else {
+                            <span>▶️</span>
+                          }
+                        </button>
+                        <button (click)="deleteUser(user)" class="btn-icon-small btn-danger" title="Löschen">
+                          🗑️
+                        </button>
+                      } @else {
+                        <span class="text-muted">Admin</span>
+                      }
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <!-- Modal: Edit Device -->
+  @if (showEditDeviceModal && editingDevice) {
+    <div class="modal-overlay" (click)="closeEditDeviceModal()">
+      <div class="modal-content modal-large" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2>Gerät bearbeiten</h2>
+          <button (click)="closeEditDeviceModal()" class="btn-close">✕</button>
+        </div>
+
+        <form (ngSubmit)="onUpdateDevice()" #deviceFormElem="ngForm">
+          <div class="form-info">
+            <strong>Benutzer:</strong> {{ editingDevice.user_vorname }} {{ editingDevice.user_name }} ({{ editingDevice.user_email }})
+          </div>
+
+          <div class="form-group">
+            <label for="name">Gerätename *</label>
+            <input
+              type="text"
+              id="name"
+              name="name"
+              [(ngModel)]="deviceForm.name"
+              required
+              #name="ngModel"
+              class="form-control"
+            />
+            @if (name.invalid && name.touched) {
+              <div class="error-text">Gerätename ist erforderlich</div>
+            }
+          </div>
+
+          <div class="form-group">
+            <label for="serial_number">Seriennummer</label>
+            <input
+              type="text"
+              id="serial_number"
+              name="serial_number"
+              [(ngModel)]="deviceForm.serial_number"
+              class="form-control"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="last_packed">Zuletzt gepackt *</label>
+            <input
+              type="date"
+              id="last_packed"
+              name="last_packed"
+              [(ngModel)]="deviceForm.last_packed"
+              required
+              #lastPacked="ngModel"
+              class="form-control"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="reminder_interval">Erinnerungsintervall *</label>
+            <select
+              id="reminder_interval"
+              name="reminder_interval"
+              [(ngModel)]="deviceForm.reminder_interval"
+              required
+              class="form-control"
+            >
+              @for (interval of reminderIntervals; track interval.value) {
+                <option [value]="interval.value">{{ interval.label }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="checkbox-label">
+              <input
+                type="checkbox"
+                name="reminder_enabled"
+                [(ngModel)]="deviceForm.reminder_enabled"
+              />
+              <span>Email-Erinnerungen aktiviert</span>
+            </label>
+          </div>
+
+          <div class="form-group">
+            <label for="notes">Notizen</label>
+            <textarea
+              id="notes"
+              name="notes"
+              [(ngModel)]="deviceForm.notes"
+              class="form-control"
+              rows="4"
+            ></textarea>
+          </div>
+
+          <div class="modal-actions">
+            <button type="button" (click)="closeEditDeviceModal()" class="btn-secondary">
+              Abbrechen
+            </button>
+            <button 
+              type="submit" 
+              [disabled]="deviceFormElem.invalid || isLoading"
+              class="btn-primary"
+            >
+              Aktualisieren
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  <!-- Modal: User Devices -->
+  @if (showUserDevicesModal && selectedUserId) {
+    <div class="modal-overlay" (click)="closeUserDevicesModal()">
+      <div class="modal-content modal-xlarge" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2>Geräte von {{ filteredDevices[0]?.user_vorname }} {{ filteredDevices[0]?.user_name }}</h2>
+          <button (click)="closeUserDevicesModal()" class="btn-close">✕</button>
+        </div>
+
+        <div class="modal-body">
+          @if (filteredDevices.length === 0) {
+            <p class="text-muted">Keine Geräte gefunden</p>
+          } @else {
+            <div class="devices-list">
+              @for (device of filteredDevices; track device.id) {
+                <div class="device-item" [class]="getStatusClass(device)">
+                  <div class="device-item-header">
+                    <div>
+                      <strong>{{ device.name }}</strong>
+                      @if (device.serial_number) {
+                        <span class="serial-small">SN: {{ device.serial_number }}</span>
+                      }
+                    </div>
+                    <div class="device-item-actions">
+                      <button (click)="openEditDevice(device); closeUserDevicesModal()" class="btn-icon-small">
+                        ✏️
+                      </button>
+                      <button (click)="deleteDevice(device)" class="btn-icon-small btn-danger">
+                        🗑️
+                      </button>
+                    </div>
+                  </div>
+                  <div class="device-item-info">
+                    <span>📅 {{ device.last_packed | date: 'dd.MM.yyyy' }}</span>
+                    <span>🔔 {{ getNextDueDate(device) | date: 'dd.MM.yyyy' }}</span>
+                    <span>⏱️ {{ device.reminder_interval }}M</span>
+                    <span class="status-badge-small">{{ getStatusText(device) }}</span>
+                  </div>
+                  @if (device.notes) {
+                    <div class="device-item-notes">{{ device.notes }}</div>
+                  }
+                </div>
+              }
+            </div>
+          }
+        </div>
+
+        <div class="modal-actions">
+          <button (click)="closeUserDevicesModal()" class="btn-secondary">
+            Schließen
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>
