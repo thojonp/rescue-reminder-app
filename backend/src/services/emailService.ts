@@ -109,7 +109,7 @@ export async function sendReminderEmail(
 // Test-Email senden
 export async function sendTestEmail(toEmail: string, fromName: string): Promise<void> {
   const mailOptions = {
-    from: `"${fromName}" <${process.env.EMAIL_USER || 'deine-email@gmail.com'}>`,
+    from: `"${fromName}" <${'info@swissgliders.ch'}>`,
     to: toEmail,
     subject: 'Test-Email - SMTP Konfiguration',
     html: `
@@ -128,9 +128,9 @@ export async function sendTestEmail(toEmail: string, fromName: string): Promise<
           <div style="background: #d1fae5; padding: 20px; border-radius: 8px; margin: 25px 0;">
             <p style="margin: 0; color: #065f46;"><strong>Konfiguration:</strong></p>
             <ul style="color: #065f46; margin: 10px 0;">
-              <li>Host: ${process.env.SMTP_HOST || 'smtp.gmail.com'}</li>
-              <li>Port: ${process.env.SMTP_PORT || '587'}</li>
-              <li>Absender: ${process.env.EMAIL_USER || 'deine-email@gmail.com'}</li>
+              <li>Host: ${'mail.infomaniak.com'}</li>
+              <li>Port: ${'587'}</li>
+              <li>Absender: ${'info@swissgliders.ch'}</li>
             </ul>
           </div>
           
