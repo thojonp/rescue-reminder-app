@@ -22,7 +22,7 @@ app.use('/api/debug', debugRoutes); // Debug-Routes
 
 const angularDistPath = path.resolve(
   __dirname,
-  "../../frontend/dist/browser"
+  "../../frontend/dist/rescue-app/browser"
 );
 
 // Static Files
