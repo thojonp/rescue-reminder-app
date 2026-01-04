@@ -4,7 +4,7 @@
 }
 
 .dashboard-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #003B73 0%, #0099CC 100%);
   color: white;
   padding: 30px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -26,12 +26,14 @@
 .dashboard-header h1 {
   margin: 0 0 8px 0;
   font-size: 32px;
+  font-weight: 700;
 }
 
 .dashboard-header p {
   margin: 0;
   opacity: 0.9;
   font-size: 16px;
+  font-weight: 400;
 }
 
 .dashboard-content {
@@ -56,7 +58,7 @@
 .alert-error {
   background-color: #fee2e2;
   color: #991b1b;
-  border: 1px solid #ef4444;
+  border: 1px solid #ED1C24;
 }
 
 .action-bar {
@@ -88,11 +90,11 @@
 }
 
 .device-card.status-warning {
-  border-left-color: #f59e0b;
+  border-left-color: #FF6B35;
 }
 
 .device-card.status-overdue {
-  border-left-color: #ef4444;
+  border-left-color: #ED1C24;
 }
 
 .device-header {
@@ -106,8 +108,9 @@
 
 .device-header h3 {
   margin: 0 0 4px 0;
-  color: #1f2937;
+  color: #1A1A1A;
   font-size: 20px;
+  font-weight: 600;
 }
 
 .serial-number {
@@ -145,10 +148,11 @@
 .info-label {
   color: #6b7280;
   font-size: 14px;
+  font-weight: 500;
 }
 
 .info-value {
-  color: #1f2937;
+  color: #1A1A1A;
   font-weight: 600;
   font-size: 14px;
 }
@@ -200,8 +204,8 @@
 }
 
 .status-warning .status-badge {
-  background-color: #fef3c7;
-  color: #92400e;
+  background-color: #fff4ed;
+  color: #c2410c;
 }
 
 .status-overdue .status-badge {
@@ -223,9 +227,10 @@
 }
 
 .empty-state h3 {
-  color: #1f2937;
+  color: #1A1A1A;
   margin-bottom: 12px;
   font-size: 24px;
+  font-weight: 700;
 }
 
 .empty-state p {
@@ -280,8 +285,9 @@
 
 .modal-header h2 {
   margin: 0;
-  color: #1f2937;
+  color: #1A1A1A;
   font-size: 22px;
+  font-weight: 600;
 }
 
 .modal-content form {
@@ -315,8 +321,9 @@
 
 .setting-section h3 {
   margin: 0 0 16px 0;
-  color: #1f2937;
+  color: #1A1A1A;
   font-size: 18px;
+  font-weight: 600;
 }
 
 .setting-section p {
@@ -344,7 +351,7 @@
   background: #fef2f2;
   padding: 20px;
   border-radius: 8px;
-  border: 1px solid #fecaca;
+  border: 1px solid #ED1C24;
 }
 
 .danger-zone h3 {
@@ -363,7 +370,7 @@
 }
 
 .danger-action strong {
-  color: #1f2937;
+  color: #1A1A1A;
   display: block;
   margin-bottom: 4px;
 }
@@ -376,7 +383,7 @@
 
 /* Buttons */
 .btn-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #003B73 0%, #0099CC 100%);
   color: white;
   border: none;
   padding: 12px 24px;
@@ -389,7 +396,7 @@
 
 .btn-primary:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 6px 12px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 6px 12px rgba(0, 59, 115, 0.3);
 }
 
 .btn-primary:disabled {
@@ -415,7 +422,7 @@
 }
 
 .btn-warning {
-  background: #f59e0b;
+  background: #FF6B35;
   color: white;
   border: none;
   padding: 10px 20px;
@@ -427,11 +434,11 @@
 }
 
 .btn-warning:hover {
-  background: #d97706;
+  background: #e65a2d;
 }
 
 .btn-danger {
-  background: #ef4444;
+  background: #ED1C24;
   color: white;
   border: none;
   padding: 10px 20px;
@@ -443,7 +450,7 @@
 }
 
 .btn-danger:hover {
-  background: #dc2626;
+  background: #d4161d;
 }
 
 .btn-icon {
@@ -479,7 +486,7 @@
 
 .btn-close:hover {
   background: #f3f4f6;
-  color: #374151;
+  color: #1A1A1A;
 }
 
 /* Form */
@@ -491,7 +498,7 @@
   display: block;
   margin-bottom: 8px;
   font-weight: 600;
-  color: #374151;
+  color: #1A1A1A;
   font-size: 14px;
 }
 
@@ -515,15 +522,15 @@
   border: 2px solid #e5e7eb;
   border-radius: 8px;
   font-size: 15px;
+  font-family: 'Encode Sans', sans-serif;
   transition: all 0.3s;
   box-sizing: border-box;
-  font-family: inherit;
 }
 
 .form-control:focus {
   outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  border-color: #003B73;
+  box-shadow: 0 0 0 3px rgba(0, 59, 115, 0.1);
 }
 
 textarea.form-control {
@@ -539,7 +546,7 @@ textarea.form-control {
 }
 
 .error-text {
-  color: #dc2626;
+  color: #ED1C24;
   font-size: 13px;
   margin-top: 6px;
 }

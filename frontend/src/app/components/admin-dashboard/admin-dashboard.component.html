@@ -1,9 +1,13 @@
 <div class="admin-container">
   <div class="admin-header">
     <div class="header-content">
-      <div>
-        <h1>👑 Admin Dashboard</h1>
-        <p>Übersicht aller Benutzer und Rettungsgeräte</p>
+      <div style="display: flex; align-items: center; gap: 20px;">
+        <!-- Swissgliders Logo -->
+        <img src="src/assets/images/swissgliders-logo.png" alt="Swissgliders Logo" style="width: 50px; height: 50px;">
+        <div>
+          <h1>👑 Admin Dashboard</h1>
+          <p>Übersicht aller Benutzer und Rettungsgeräte</p>
+        </div>
       </div>
       <div class="header-actions">
         <button (click)="goToUserDashboard()" class="btn-secondary">📦 Meine Geräte</button>
@@ -216,7 +220,7 @@
     @if (activeTab === 'settings') {
       <div class="tab-content">
         <div class="settings-panel">
-          <h2>📧 Email-Einstellungen</h2>
+          <h2>🔧 Email-Einstellungen</h2>
           
           <div class="setting-box">
             <h3>Verbindung testen</h3>

@@ -4,7 +4,7 @@
 }
 
 .admin-header {
-  background: linear-gradient(135deg, #1e40af 0%, #7c3aed 100%);
+  background: linear-gradient(135deg, #003B73 0%, #0099CC 100%);
   color: white;
   padding: 30px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -26,12 +26,14 @@
 .admin-header h1 {
   margin: 0 0 8px 0;
   font-size: 32px;
+  font-weight: 700;
 }
 
 .admin-header p {
   margin: 0;
   opacity: 0.9;
   font-size: 16px;
+  font-weight: 400;
 }
 
 .admin-content {
@@ -56,7 +58,7 @@
 .alert-error {
   background-color: #fee2e2;
   color: #991b1b;
-  border: 1px solid #ef4444;
+  border: 1px solid #ED1C24;
 }
 
 /* Statistics */
@@ -83,7 +85,7 @@
 }
 
 .stat-card.stat-warning {
-  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  background: linear-gradient(135deg, #fff4ed 0%, #ffedd5 100%);
 }
 
 .stat-card.stat-danger {
@@ -101,7 +103,7 @@
 .stat-value {
   font-size: 36px;
   font-weight: 700;
-  color: #1f2937;
+  color: #1A1A1A;
   line-height: 1;
   margin-bottom: 4px;
 }
@@ -138,11 +140,11 @@
 
 .tab-button:hover {
   background: #f3f4f6;
-  color: #374151;
+  color: #1A1A1A;
 }
 
 .tab-button.active {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #003B73 0%, #0099CC 100%);
   color: white;
 }
 
@@ -159,7 +161,7 @@
 
 .filter-bar label {
   font-weight: 600;
-  color: #374151;
+  color: #1A1A1A;
 }
 
 .filter-select {
@@ -167,13 +169,14 @@
   border: 2px solid #e5e7eb;
   border-radius: 8px;
   font-size: 14px;
+  font-family: 'Encode Sans', sans-serif;
   min-width: 250px;
   cursor: pointer;
 }
 
 .filter-select:focus {
   outline: none;
-  border-color: #667eea;
+  border-color: #003B73;
 }
 
 /* Tab Content */
@@ -201,7 +204,7 @@
   padding: 16px 20px;
   text-align: left;
   font-weight: 600;
-  color: #374151;
+  color: #1A1A1A;
   font-size: 13px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -210,7 +213,7 @@
 
 .data-table td {
   padding: 16px 20px;
-  color: #1f2937;
+  color: #1A1A1A;
   font-size: 14px;
   border-bottom: 1px solid #f3f4f6;
 }
@@ -233,7 +236,7 @@
 
 .device-name {
   font-weight: 600;
-  color: #1f2937;
+  color: #1A1A1A;
 }
 
 .has-notes {
@@ -257,7 +260,7 @@
 
 .user-name {
   font-weight: 600;
-  color: #1f2937;
+  color: #1A1A1A;
 }
 
 .user-email {
@@ -283,8 +286,8 @@
 }
 
 .status-warning .status-badge {
-  background-color: #fef3c7;
-  color: #92400e;
+  background-color: #fff4ed;
+  color: #c2410c;
 }
 
 .status-overdue .status-badge {
@@ -301,13 +304,13 @@
 }
 
 .role-badge.admin {
-  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-  color: #92400e;
+  background: linear-gradient(135deg, #fff4ed 0%, #ffedd5 100%);
+  color: #c2410c;
 }
 
 .role-badge.user {
   background: #f3f4f6;
-  color: #374151;
+  color: #1A1A1A;
 }
 
 .badge-active {
@@ -336,7 +339,7 @@
   height: 36px;
   padding: 0 12px;
   background: #e0e7ff;
-  color: #3730a3;
+  color: #003B73;
   border: none;
   border-radius: 18px;
   font-weight: 700;
@@ -419,8 +422,9 @@
 
 .modal-header h2 {
   margin: 0;
-  color: #1f2937;
+  color: #1A1A1A;
   font-size: 22px;
+  font-weight: 600;
 }
 
 /* Settings Panel */
@@ -430,8 +434,9 @@
 
 .settings-panel h2 {
   margin: 0 0 30px 0;
-  color: #1f2937;
+  color: #1A1A1A;
   font-size: 24px;
+  font-weight: 700;
 }
 
 .setting-box {
@@ -444,8 +449,9 @@
 
 .setting-box h3 {
   margin: 0 0 12px 0;
-  color: #374151;
+  color: #1A1A1A;
   font-size: 18px;
+  font-weight: 600;
 }
 
 .setting-box p {
@@ -460,7 +466,7 @@
   padding: 2px 6px;
   border-radius: 4px;
   font-size: 13px;
-  color: #1f2937;
+  color: #1A1A1A;
 }
 
 .info-box {
@@ -484,7 +490,7 @@
   padding: 12px 16px;
   border-radius: 8px;
   background: #f3f4f6;
-  color: #374151;
+  color: #1A1A1A;
   font-size: 14px;
   font-weight: 500;
 }
@@ -504,7 +510,7 @@
   background: #f0f9ff;
   border-radius: 8px;
   margin-bottom: 20px;
-  color: #1e40af;
+  color: #003B73;
 }
 
 .modal-actions {
@@ -530,7 +536,7 @@
 }
 
 .device-item:hover {
-  border-color: #667eea;
+  border-color: #003B73;
 }
 
 .device-item.status-overdue {
@@ -571,7 +577,7 @@
 
 .status-badge-small {
   background: #e0e7ff;
-  color: #3730a3;
+  color: #003B73;
   padding: 4px 10px;
   border-radius: 12px;
   font-size: 12px;
@@ -584,13 +590,13 @@
   background: #f9fafb;
   border-radius: 6px;
   font-size: 13px;
-  color: #374151;
+  color: #1A1A1A;
   white-space: pre-wrap;
 }
 
 /* Buttons */
 .btn-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #003B73 0%, #0099CC 100%);
   color: white;
   border: none;
   padding: 12px 24px;
@@ -603,7 +609,7 @@
 
 .btn-primary:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 6px 12px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 6px 12px rgba(0, 59, 115, 0.3);
 }
 
 .btn-primary:disabled {
@@ -661,7 +667,7 @@
 
 .btn-close:hover {
   background: #f3f4f6;
-  color: #374151;
+  color: #1A1A1A;
 }
 
 /* Form */
@@ -673,7 +679,7 @@
   display: block;
   margin-bottom: 8px;
   font-weight: 600;
-  color: #374151;
+  color: #1A1A1A;
   font-size: 14px;
 }
 
@@ -697,15 +703,15 @@
   border: 2px solid #e5e7eb;
   border-radius: 8px;
   font-size: 15px;
+  font-family: 'Encode Sans', sans-serif;
   transition: all 0.3s;
   box-sizing: border-box;
-  font-family: inherit;
 }
 
 .form-control:focus {
   outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  border-color: #003B73;
+  box-shadow: 0 0 0 3px rgba(0, 59, 115, 0.1);
 }
 
 textarea.form-control {
@@ -714,7 +720,7 @@ textarea.form-control {
 }
 
 .error-text {
-  color: #dc2626;
+  color: #ED1C24;
   font-size: 13px;
   margin-top: 6px;
 }
