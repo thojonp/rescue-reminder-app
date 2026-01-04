@@ -8,7 +8,7 @@ import { environment } from '../../environments/environment';
   providedIn: 'root'
 })
 export class DeviceService {
-  private apiUrl = environment.apiUrl + '/api/devices';
+  private apiUrl = environment.apiUrl + '/devices';
 
   constructor(private http: HttpClient) {}
 
