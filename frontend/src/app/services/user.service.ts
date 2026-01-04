@@ -2,13 +2,15 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { UserWithDeviceCount } from '../models/user.model';
+import { environment } from '../../environments/environment';
+
 
 @Injectable({
   providedIn: 'root'
 })
 export class UserService {
-  private apiUrl = 'http://localhost:3000/api/users';
-  private debugUrl = 'http://localhost:3000/api/debug';
+  private apiUrl = environment.apiUrl + '/api/users';
+  private debugUrl = environment.apiUrl + '/api/debug';
 
   constructor(private http: HttpClient) {}
 
