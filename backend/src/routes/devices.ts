@@ -64,7 +64,7 @@ router.post('/', authenticateToken, (req: AuthRequest, res) => {
     return res.status(400).json({ error: 'Name, Packdatum und Intervall sind erforderlich' });
   }
 
-  if (![6, 9, 12].includes(reminder_interval)) {
+  if (!['6', '9', '12'].includes(reminder_interval)) {
     return res.status(400).json({ 
       error: 'Erinnerungsintervall muss 6, 9 oder 12 Monate sein' 
     });
@@ -105,7 +105,7 @@ router.put('/:id', authenticateToken, (req: AuthRequest, res) => {
     return res.status(400).json({ error: 'Name, Packdatum und Intervall sind erforderlich' });
   }
 
-  if (![6, 9, 12].includes(reminder_interval)) {
+  if (!['6', '9', '12'].includes(reminder_interval)) {
     return res.status(400).json({ 
       error: 'Erinnerungsintervall muss 6, 9 oder 12 Monate sein' 
     });
