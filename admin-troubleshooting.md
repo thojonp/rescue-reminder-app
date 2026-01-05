@@ -44,7 +44,7 @@ sqlite3 rescue-reminder.db
 
 ```sql
 -- Alle Benutzer anzeigen
-SELECT id, email, vorname, name, is_admin, is_active FROM users;
+SELECT id, email, first_name, last_name, is_admin, is_active FROM users;
 
 -- Admin-Status setzen
 UPDATE users SET is_admin = 1 WHERE email = 'admin@rescue.com';
@@ -173,7 +173,7 @@ sqlite3 rescue-reminder.db
 ```
 
 ```sql
-INSERT INTO users (email, password, vorname, name, is_admin, is_active) 
+INSERT INTO users (email, password, first_name, last_name, is_admin, is_active) 
 VALUES (
   'superadmin@rescue.com',
   '$2b$10$YourHashedPasswordHere',

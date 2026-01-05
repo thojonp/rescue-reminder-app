@@ -9,9 +9,9 @@ const router = Router();
 
 // Registrierung
 router.post('/register', async (req, res) => {
-  const { email, password, vorname, name } = req.body;
+  const { email, password, first_name, last_name } = req.body;
 
-  if (!email || !password || !vorname || !name) {
+  if (!email || !password || !first_name || !last_name) {
     return res.status(400).json({ error: 'Alle Felder sind erforderlich' });
   }
 
@@ -22,10 +22,10 @@ router.post('/register', async (req, res) => {
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const sql = `INSERT INTO users (email, password, vorname, name, is_admin, is_active) 
+    const sql = `INSERT INTO users (email, password, first_name, last_name, is_admin, is_active) 
                  VALUES (?, ?, ?, ?, 0, 1)`;
 
-    db.run(sql, [email, hashedPassword, vorname, name], function(err) {
+    db.run(sql, [email, hashedPassword, first_name, last_name], function(err) {
       if (err) {
         if (err.message.includes('UNIQUE')) {
           return res.status(409).json({ error: 'Email bereits registriert' });
@@ -45,8 +45,8 @@ router.post('/register', async (req, res) => {
         user: { 
           id: this.lastID, 
           email, 
-          vorname, 
-          name, 
+          first_name: first_name, 
+          last_name: last_name, 
           is_admin: false,
           is_active: true
         }
@@ -112,8 +112,8 @@ router.post('/login', (req, res) => {
         user: {
           id: user.id,
           email: user.email,
-          vorname: user.vorname,
-          name: user.name,
+          first_name: user.first_name,
+          last_name: user.last_name,
           is_admin: user.is_admin ? true : false,
           is_active: user.is_active ? true : false
         }

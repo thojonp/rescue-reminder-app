@@ -7,7 +7,7 @@ const db = new sqlite3.Database('./rescue-reminder.db');
 console.log('🔍 Überprüfe Admin-Status...\n');
 
 // Alle Benutzer anzeigen
-db.all('SELECT id, email, vorname, name, is_admin, is_active FROM users', [], (err, rows) => {
+db.all('SELECT id, email, first_name, last_name, is_admin, is_active FROM users', [], (err, rows) => {
   if (err) {
     console.error('Fehler:', err);
     return;
@@ -17,7 +17,7 @@ db.all('SELECT id, email, vorname, name, is_admin, is_active FROM users', [], (e
   console.table(rows.map(row => ({
     ID: row.id,
     Email: row.email,
-    Name: `${row.vorname} ${row.name}`,
+    Name: `${row.first_name} ${row.last_name}`,
     'Is Admin': row.is_admin ? '✅ JA' : '❌ NEIN',
     'Is Active': row.is_active ? '✅ Aktiv' : '❌ Inaktiv'
   })));

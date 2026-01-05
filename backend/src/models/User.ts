@@ -2,8 +2,8 @@ export interface User {
   id?: number;
   email: string;
   password?: string;
-  vorname: string;
-  name: string;
+  first_name: string;
+  last_name: string;
   is_admin: boolean;
   is_active: boolean;
   created_at?: string;
@@ -12,8 +12,8 @@ export interface User {
 export interface UserResponse {
   id: number;
   email: string;
-  vorname: string;
-  name: string;
+  first_name: string;
+  last_name: string;
   is_admin: boolean;
   is_active: boolean;
 }

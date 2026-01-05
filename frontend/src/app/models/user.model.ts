@@ -7,16 +7,16 @@ export interface User {
   is_active: boolean;
 }
 
-export interface LoginRequest {
-  email: string;
-  password: string;
-}
-
 export interface RegisterRequest {
   email: string;
   password: string;
-  first_name: string;
-  last_name: string;
+  first_name: string;   // ← Frontend-Formular
+  last_name: string;    // ← Frontend-Formular
+}
+
+export interface LoginRequest {
+  email: string;
+  password: string;
 }
 
 export interface AuthResponse {

@@ -190,8 +190,8 @@ App läuft auf: `http://localhost:4200`
 - id: INTEGER PRIMARY KEY
 - email: TEXT UNIQUE
 - password: TEXT (hashed)
-- vorname: TEXT
-- name: TEXT
+- first_name: TEXT
+- last_name: TEXT
 - is_admin: BOOLEAN
 - is_active: BOOLEAN (NEU)
 - created_at: DATETIME

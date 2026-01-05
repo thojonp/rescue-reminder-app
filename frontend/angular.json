@@ -6,7 +6,7 @@
   },
   "newProjectRoot": "projects",
   "projects": {
-    "rescue-app": {
+    "rescue-reminder": {
       "projectType": "application",
       "schematics": {},
       "root": "",
@@ -62,10 +62,10 @@
           "builder": "@angular/build:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "frontend:build:production"
+              "buildTarget": "rescue-reminder:build:production"
             },
             "development": {
-              "buildTarget": "frontend:build:development"
+              "buildTarget": "rescue-reminder:build:development"
             }
           },
           "defaultConfiguration": "development"
