@@ -13,7 +13,6 @@ export class AuthService {
   public currentUser$ = this.currentUserSubject.asObservable();
 
   constructor(private http: HttpClient) {
-    // Lade gespeicherten User beim Start
     this.loadStoredUser();
   }
 
@@ -33,7 +32,7 @@ export class AuthService {
     }
   }
 
-  register(data: RegisterRequest): Observable<AuthResponse> {
+  register(data: any): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.apiUrl}/auth/register`, data).pipe(
       tap(response => this.handleAuthSuccess(response))
     );
@@ -47,6 +46,14 @@ export class AuthService {
         this.handleAuthSuccess(response);
       })
     );
+  }
+
+  requestPasswordReset(email: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/auth/forgot-password`, { email });
+  }
+
+  resetPassword(token: string, newPassword: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/auth/reset-password`, { token, newPassword });
   }
 
   logout(): void {

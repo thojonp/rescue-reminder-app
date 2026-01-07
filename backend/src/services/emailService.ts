@@ -162,3 +162,76 @@ export async function testEmailConnection(): Promise<boolean> {
     return false;
   }
 }
+
+// Fügen Sie diese Funktion zu Ihrer bestehenden emailService.ts hinzu:
+
+export async function sendPasswordResetEmail(
+  to: string, 
+  resetLink: string, 
+  userName: string
+): Promise<void> {
+  const mailOptions = {
+    from: process.env.EMAIL_FROM || 'noreply@swissgliders.ch',
+    to,
+    subject: '🔐 Passwort zurücksetzen - Rettungsgerät Management',
+    html: `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <style>
+          body { font-family: 'Encode Sans', Arial, sans-serif; line-height: 1.6; color: #1A1A1A; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background: linear-gradient(135deg, #003B73 0%, #0099CC 100%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
+          .content { background: #ffffff; padding: 30px; border: 1px solid #e5e7eb; }
+          .button { display: inline-block; background: linear-gradient(135deg, #003B73 0%, #0099CC 100%); color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; margin: 20px 0; }
+          .footer { background: #f3f4f6; padding: 20px; text-align: center; font-size: 12px; color: #6b7280; border-radius: 0 0 8px 8px; }
+          .warning { background: #fff4ed; border-left: 4px solid #FF6B35; padding: 15px; margin: 20px 0; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>🔐 Passwort zurücksetzen</h1>
+          </div>
+          <div class="content">
+            <p>Hallo ${userName},</p>
+            
+            <p>Sie haben eine Anfrage zum Zurücksetzen Ihres Passworts gestellt.</p>
+            
+            <p>Klicken Sie auf den folgenden Button, um ein neues Passwort zu setzen:</p>
+            
+            <div style="text-align: center;">
+              <a href="${resetLink}" class="button">Passwort zurücksetzen</a>
+            </div>
+            
+            <div class="warning">
+              <strong>⚠️ Wichtig:</strong> Dieser Link ist nur <strong>1 Stunde</strong> gültig.
+            </div>
+            
+            <p>Falls der Button nicht funktioniert, kopieren Sie diesen Link in Ihren Browser:</p>
+            <p style="word-break: break-all; color: #003B73;"><a href="${resetLink}">${resetLink}</a></p>
+            
+            <p style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+              <strong>Sie haben diese Anfrage nicht gestellt?</strong><br>
+              Dann können Sie diese Email ignorieren. Ihr Passwort bleibt unverändert.
+            </p>
+          </div>
+          <div class="footer">
+            <p>© ${new Date().getFullYear()} Swissgliders - Rettungsgerät Management</p>
+            <p>Diese Email wurde automatisch generiert. Bitte antworten Sie nicht darauf.</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    console.log(`Password-Reset Email gesendet an: ${to}`);
+  } catch (error) {
+    console.error('Fehler beim Senden der Password-Reset Email:', error);
+    throw error;
+  }
+}

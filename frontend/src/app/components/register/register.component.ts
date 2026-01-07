@@ -50,7 +50,17 @@ export class RegisterComponent {
     this.isLoading = true;
     this.errorMessage = '';
 
-    this.authService.register(this.registerData).subscribe({
+    // Backend erwartet 'vorname' und 'name' statt 'first_name' und 'last_name'
+    const backendData = {
+      email: this.registerData.email,
+      password: this.registerData.password,
+      vorname: this.registerData.first_name,
+      name: this.registerData.last_name
+    };
+
+    console.log('Sending registration data:', backendData);
+
+    this.authService.register(backendData as any).subscribe({
       next: () => {
         this.router.navigate(['/dashboard']);
       },

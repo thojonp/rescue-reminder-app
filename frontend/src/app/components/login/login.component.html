@@ -3,7 +3,7 @@
     <div class="login-header">
       <!-- Swissgliders Logo -->
       <div style="margin-bottom: 24px; display: flex; justify-content: center;">
-        <img src="assets/images/swissgliders-logo.png" alt="Swissgliders Logo" style="width: 120px; height: 120px;">
+        <img src="/assets/swissgliders-logo.png" alt="Swissgliders Logo" style="width: 120px; height: 120px;">
       </div>
       
       <h1>🚨 Rettungsgerät Management</h1>
@@ -67,6 +67,7 @@
 
     <div class="login-footer">
       <p>Noch kein Konto? <a routerLink="/register">Jetzt registrieren</a></p>
+      <p><a (click)="openForgotPassword()" style="cursor: pointer; color: #003B73;">Passwort vergessen?</a></p>
     </div>
 
     <div class="demo-credentials">
@@ -74,4 +75,51 @@
       <p>Admin: admin@rescue.com / admin123</p>
     </div>
   </div>
+
+  <!-- Modal: Passwort vergessen -->
+  @if (showForgotPassword) {
+    <div class="modal-overlay" (click)="closeForgotPassword()">
+      <div class="modal-content" (click)="$event.stopPropagation()" style="max-width: 450px;">
+        <div class="modal-header" style="padding: 24px; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center;">
+          <h2 style="margin: 0; color: #1A1A1A; font-size: 22px; font-weight: 600;">Passwort zurücksetzen</h2>
+          <button (click)="closeForgotPassword()" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #9ca3af;">✕</button>
+        </div>
+
+        <div style="padding: 24px;">
+          @if (resetMessage) {
+            <div [class]="'alert alert-' + resetMessageType" style="margin-bottom: 20px;">
+              {{ resetMessage }}
+            </div>
+          }
+
+          <p style="margin-bottom: 20px; color: #6b7280;">Geben Sie Ihre Email-Adresse ein. Wir senden Ihnen einen Link zum Zurücksetzen Ihres Passworts.</p>
+
+          <div class="form-group">
+            <label for="resetEmail">Email-Adresse</label>
+            <input
+              type="email"
+              id="resetEmail"
+              [(ngModel)]="resetEmail"
+              class="form-control"
+              placeholder="ihre@email.com"
+              [disabled]="isLoading"
+            />
+          </div>
+
+          <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px;">
+            <button (click)="closeForgotPassword()" class="btn-secondary" style="background: #f3f4f6; color: #374151; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer;">
+              Abbrechen
+            </button>
+            <button (click)="onResetPassword()" [disabled]="isLoading || !resetEmail" class="btn-primary">
+              @if (isLoading) {
+                <span>Wird gesendet...</span>
+              } @else {
+                <span>Link senden</span>
+              }
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
 </div>
