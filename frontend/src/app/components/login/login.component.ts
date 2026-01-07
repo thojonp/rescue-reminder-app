@@ -1,4 +1,4 @@
-import { Component, ChangeDetectorRef } from '@angular/core';
+import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
@@ -27,8 +27,7 @@ export class LoginComponent {
 
   constructor(
     private authService: AuthService,
-    private router: Router,
-    private cdr: ChangeDetectorRef
+    private router: Router
   ) {}
 
   onSubmit(): void {
@@ -55,6 +54,7 @@ export class LoginComponent {
         this.isLoading = false;
         this.errorMessage = error.error?.error || 'Login fehlgeschlagen. Bitte versuchen Sie es erneut.';
         console.error('Login error:', error);
+        console.log('Error message set to:', this.errorMessage);
       }
     });
   }
