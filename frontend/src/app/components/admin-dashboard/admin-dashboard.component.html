@@ -12,7 +12,7 @@
         </div>
       </div>
       <div class="header-actions">
-        <button (click)="goToUserDashboard()" class="btn-secondary">📦 Meine Geräte</button>
+        <button (click)="goToUserDashboard()" class="btn-secondary">🪂 Meine Rettungsgeräte</button>
         <button (click)="logout()" class="btn-secondary">Abmelden</button>
       </div>
     </div>
@@ -29,10 +29,10 @@
         </div>
       </div>
       <div class="stat-card">
-        <div class="stat-icon">📦</div>
+        <div class="stat-icon">🪂</div>
         <div class="stat-info">
           <div class="stat-value">{{ activeDevices$ | async }}/{{ totalDevices$ | async }}</div>
-          <div class="stat-label">Aktive Geräte</div>
+          <div class="stat-label">Aktive Rettungsgeräte</div>
         </div>
       </div>
       <div class="stat-card stat-warning">
@@ -54,7 +54,7 @@
     <!-- Tabs -->
     <div class="tabs">
       <button [class.active]="activeTab === 'devices'" (click)="switchTab('devices')" class="tab-button">
-        📦 Alle Geräte ({{ (devices$ | async)?.length || 0 }})
+        🪂 Alle Rettungsgeräte ({{ (devices$ | async)?.length || 0 }})
       </button>
       <button [class.active]="activeTab === 'users'" (click)="switchTab('users')" class="tab-button">
         👥 Benutzer ({{ (users$ | async)?.length || 0 }})
@@ -78,9 +78,9 @@
         </div>
 
         @if (isLoadingDevices$ | async) {
-          <div class="loading">Lade Geräte...</div>
+          <div class="loading">Lade Rettungsgeräte...</div>
         } @else if ((filteredDevices$ | async)?.length === 0) {
-          <div class="empty-state"><p>Keine Geräte gefunden</p></div>
+          <div class="empty-state"><p>Keine Rettungsgeräte gefunden</p></div>
         } @else {
           <div class="table-container">
             <table class="data-table">
@@ -162,7 +162,7 @@
                   <th>Email</th>
                   <th>Rolle</th>
                   <th>Status</th>
-                  <th>Geräte</th>
+                  <th>Rettungsgeräte</th>
                   <th>Registriert</th>
                   <th>Aktionen</th>
                 </tr>
@@ -344,7 +344,7 @@
     <div class="modal-overlay" (click)="closeUserDevicesModal()">
       <div class="modal-content modal-xlarge" (click)="$event.stopPropagation()">
         <div class="modal-header">
-          <h2>Geräte des Benutzers</h2>
+          <h2>Rettungsgeräte des Benutzers</h2>
           <button (click)="closeUserDevicesModal()" class="btn-close">✕</button>
         </div>
 

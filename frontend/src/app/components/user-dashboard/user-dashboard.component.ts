@@ -91,7 +91,7 @@ export class UserDashboardComponent implements OnInit, OnDestroy {
           this.devicesSubject.next(devices);
         },
         error: (error) => {
-          this.messageService.error('Fehler beim Laden der Geräte');
+          this.messageService.error('Fehler beim Laden der Rettungsgeräte');
           this.devicesSubject.next([]);
         }
       });
@@ -247,7 +247,7 @@ export class UserDashboardComponent implements OnInit, OnDestroy {
   }
 
   deleteAccount(): void {
-    if (!confirm('ACHTUNG: Konto und ALLE Geräte löschen?')) {
+    if (!confirm('ACHTUNG: Konto und ALLE Rettungsgeräte löschen?')) {
       return;
     }
 

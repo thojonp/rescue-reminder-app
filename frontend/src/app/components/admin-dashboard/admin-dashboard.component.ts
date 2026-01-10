@@ -142,7 +142,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
           this.devicesSubject.next(devices);
         },
         error: (error) => {
-          this.messageService.error('Fehler beim Laden der Geräte');
+          this.messageService.error('Fehler beim Laden der Rettungsgeräte');
           this.devicesSubject.next([]);
         }
       });
@@ -291,7 +291,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   }
 
   deleteUser(user: UserWithDeviceCount): void {
-    if (!confirm(`ACHTUNG: ${user.first_name} ${user.last_name} und ALLE Geräte (${user.device_count}) löschen?`)) {
+    if (!confirm(`ACHTUNG: ${user.first_name} ${user.last_name} und ALLE Rettungsgeräte (${user.device_count}) löschen?`)) {
       return;
     }
 

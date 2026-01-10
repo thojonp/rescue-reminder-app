@@ -7,7 +7,7 @@
         <!-- Swissgliders Logo -->
         <img src="assets/images/swissgliders-logo.png" alt="Swissgliders Logo" style="width: 50px; height: 50px;">
         <div>
-          <h1>🚨 Meine Rettungsgeräte</h1>
+          <h1>🪂 Meine Rettungsgeräte</h1>
           @if (currentUser) {
             <p>Willkommen, {{ currentUser.first_name }} {{ currentUser.last_name }}</p>
           }
@@ -26,11 +26,11 @@
     </div>
 
     @if (isLoadingDevices$ | async) {
-      <div class="loading">Lade Geräte...</div>
+      <div class="loading">Lade Rettungsgeräte...</div>
     } @else if ((devices$ | async)?.length === 0) {
       <div class="empty-state">
         <div class="empty-icon">📦</div>
-        <h3>Noch keine Geräte registriert</h3>
+        <h3>Noch keine Rettungsgeräte registriert</h3>
         <button (click)="openAddForm()" class="btn-primary">Jetzt hinzufügen</button>
       </div>
     } @else {
@@ -187,7 +187,7 @@
             <div class="danger-action">
               <div>
                 <strong>Konto löschen</strong>
-                <p>Löscht Ihr Konto und ALLE Geräte permanent!</p>
+                <p>Löscht Ihr Konto und ALLE Rettungsgeräte permanent!</p>
               </div>
               <button (click)="deleteAccount()" class="btn-danger">Konto löschen</button>
             </div>
