@@ -1,103 +1,124 @@
-import { Component } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
+import { Subject } from 'rxjs';
+import { takeUntil, finalize } from 'rxjs/operators';
 import { AuthService } from '../../services/auth.service';
+import { MessageService } from '../../services/message.service';
 import { LoginRequest } from '../../models/user.model';
+import { MessagesComponent } from '../shared/messages.component';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule, MessagesComponent],
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css']
 })
-export class LoginComponent {
+export class LoginComponent implements OnDestroy {
+  private destroy$ = new Subject<void>();
+
   loginData: LoginRequest = {
     email: '',
     password: ''
   };
 
-  errorMessage = '';
   isLoading = false;
   showForgotPassword = false;
   resetEmail = '';
-  resetMessage = '';
-  resetMessageType: 'success' | 'error' = 'success';
 
   constructor(
     private authService: AuthService,
+    private messageService: MessageService,
     private router: Router
   ) {}
 
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   onSubmit(): void {
+    // Validierung
     if (!this.loginData.email || !this.loginData.password) {
-      this.errorMessage = 'Bitte Email und Passwort eingeben';
+      this.messageService.error('Bitte Email und Passwort eingeben');
       return;
     }
 
     this.isLoading = true;
-    this.errorMessage = '';
+    this.messageService.clear();
 
-    this.authService.login(this.loginData).subscribe({
-      next: (response) => {
-        this.isLoading = false;
-        const user = response.user;
-        
-        if (user.is_admin) {
-          this.router.navigate(['/admin']);
-        } else {
-          this.router.navigate(['/dashboard']);
+    this.authService.login(this.loginData)
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => {
+          this.isLoading = false;
+        })
+      )
+      .subscribe({
+        next: (response) => {
+          const user = response.user;
+          
+          if (user.is_admin) {
+            this.router.navigate(['/admin']);
+          } else {
+            this.router.navigate(['/dashboard']);
+          }
+        },
+        error: (error) => {
+          const errorMsg = this.messageService.extractErrorMessage(
+            error, 
+            'Login fehlgeschlagen. Bitte versuchen Sie es erneut.'
+          );
+          this.messageService.error(errorMsg);
+          console.error('Login error:', error);
         }
-      },
-      error: (error) => {
-        this.isLoading = false;
-        this.errorMessage = error.error?.error || 'Login fehlgeschlagen. Bitte versuchen Sie es erneut.';
-        console.error('Login error:', error);
-        console.log('Error message set to:', this.errorMessage);
-      }
-    });
+      });
   }
 
   openForgotPassword(): void {
     this.showForgotPassword = true;
     this.resetEmail = '';
-    this.resetMessage = '';
-    this.errorMessage = '';
+    this.messageService.clear();
   }
 
   closeForgotPassword(): void {
     this.showForgotPassword = false;
     this.resetEmail = '';
-    this.resetMessage = '';
   }
 
   onResetPassword(): void {
     if (!this.resetEmail) {
-      this.resetMessage = 'Bitte Email-Adresse eingeben';
-      this.resetMessageType = 'error';
+      this.messageService.error('Bitte Email-Adresse eingeben');
       return;
     }
 
     this.isLoading = true;
-    this.resetMessage = '';
 
-    this.authService.requestPasswordReset(this.resetEmail).subscribe({
-      next: () => {
-        this.isLoading = false;
-        this.resetMessage = 'Ein Link zum Zurücksetzen wurde an Ihre Email gesendet.';
-        this.resetMessageType = 'success';
-        
-        // Modal nach 3 Sekunden schließen
-        setTimeout(() => {
-          this.closeForgotPassword();
-        }, 3000);
-      },
-      error: (error) => {
-        this.isLoading = false;
-        this.resetMessage = error.error?.error || 'Fehler beim Senden. Bitte versuchen Sie es erneut.';
-        this.resetMessageType = 'error';
-      }
-    });
+    this.authService.requestPasswordReset(this.resetEmail)
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => {
+          this.isLoading = false;
+        })
+      )
+      .subscribe({
+        next: () => {
+          this.messageService.success('Ein Link zum Zurücksetzen wurde an Ihre Email gesendet.');
+          
+          // Modal nach 3 Sekunden schließen
+          setTimeout(() => {
+            this.closeForgotPassword();
+          }, 3000);
+        },
+        error: (error) => {
+          const errorMsg = this.messageService.extractErrorMessage(
+            error,
+            'Fehler beim Senden. Bitte versuchen Sie es erneut.'
+          );
+          this.messageService.error(errorMsg);
+        }
+      });
   }
 }

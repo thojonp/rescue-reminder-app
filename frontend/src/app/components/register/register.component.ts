@@ -1,18 +1,24 @@
-import { Component } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
+import { Subject } from 'rxjs';
+import { takeUntil, finalize } from 'rxjs/operators';
 import { AuthService } from '../../services/auth.service';
+import { MessageService } from '../../services/message.service';
 import { RegisterRequest } from '../../models/user.model';
+import { MessagesComponent } from '../shared/messages.component';
 
 @Component({
   selector: 'app-register',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule, MessagesComponent],
   templateUrl: './register.component.html',
   styleUrls: ['./register.component.css']
 })
-export class RegisterComponent {
+export class RegisterComponent implements OnDestroy {
+  private destroy$ = new Subject<void>();
+
   registerData: RegisterRequest = {
     email: '',
     password: '',
@@ -21,46 +27,75 @@ export class RegisterComponent {
   };
 
   confirmPassword = '';
-  errorMessage = '';
   isLoading = false;
 
   constructor(
     private authService: AuthService,
+    private messageService: MessageService,
     private router: Router
   ) {}
 
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   onSubmit(): void {
+    // Felder trimmen
+    const email = this.registerData.email?.trim() || '';
+    const password = this.registerData.password || '';
+    const firstName = this.registerData.first_name?.trim() || '';
+    const lastName = this.registerData.last_name?.trim() || '';
+
     // Validierung
-    if (!this.registerData.email || !this.registerData.password || 
-        !this.registerData.first_name || !this.registerData.last_name) {
-      this.errorMessage = 'Bitte alle Felder ausfüllen';
+    if (!email || !password || !firstName || !lastName) {
+      this.messageService.error('Bitte alle Felder ausfüllen');
       return;
     }
 
-    if (this.registerData.password.length < 6) {
-      this.errorMessage = 'Passwort muss mindestens 6 Zeichen lang sein';
+    if (password.length < 6) {
+      this.messageService.error('Passwort muss mindestens 6 Zeichen lang sein');
       return;
     }
 
-    if (this.registerData.password !== this.confirmPassword) {
-      this.errorMessage = 'Passwörter stimmen nicht überein';
+    if (password !== this.confirmPassword) {
+      this.messageService.error('Passwörter stimmen nicht überein');
       return;
     }
 
     this.isLoading = true;
-    this.errorMessage = '';
+    this.messageService.clear();
 
-    console.log('Registering with data:', this.registerData);
+    // Getrimmte Daten senden
+    const dataToSend = {
+      email,
+      password,
+      first_name: firstName,
+      last_name: lastName
+    };
 
-    this.authService.register(this.registerData).subscribe({
-      next: () => {
-        this.router.navigate(['/dashboard']);
-      },
-      error: (error) => {
-        this.isLoading = false;
-        console.error('Registration error:', error);
-        this.errorMessage = error.error?.error || 'Registrierung fehlgeschlagen. Bitte versuchen Sie es erneut.';
-      }
-    });
+    console.log('Registering with data:', dataToSend);
+
+    this.authService.register(dataToSend)
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => {
+          this.isLoading = false;
+        })
+      )
+      .subscribe({
+        next: () => {
+          this.messageService.success('Registrierung erfolgreich!');
+          this.router.navigate(['/dashboard']);
+        },
+        error: (error) => {
+          console.error('Registration error:', error);
+          const errorMsg = this.messageService.extractErrorMessage(
+            error,
+            'Registrierung fehlgeschlagen. Bitte versuchen Sie es erneut.'
+          );
+          this.messageService.error(errorMsg);
+        }
+      });
   }
 }

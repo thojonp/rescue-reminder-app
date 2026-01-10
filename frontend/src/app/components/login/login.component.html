@@ -1,3 +1,5 @@
+<app-messages></app-messages>
+
 <div class="login-container">
   <div class="login-card">
     <div class="login-header">
@@ -9,12 +11,6 @@
       <h1>🚨 Rettungsgerät Management</h1>
       <p>Melden Sie sich an, um fortzufahren</p>
     </div>
-
-    @if (errorMessage) {
-      <div class="alert alert-error">
-        {{ errorMessage }}
-      </div>
-    }
 
     <form (ngSubmit)="onSubmit()" #loginForm="ngForm">
       <div class="form-group">
@@ -86,12 +82,6 @@
         </div>
 
         <div style="padding: 24px;">
-          @if (resetMessage) {
-            <div [class]="'alert alert-' + resetMessageType" style="margin-bottom: 20px;">
-              {{ resetMessage }}
-            </div>
-          }
-
           <p style="margin-bottom: 20px; color: #6b7280;">Geben Sie Ihre Email-Adresse ein. Wir senden Ihnen einen Link zum Zurücksetzen Ihres Passworts.</p>
 
           <div class="form-group">

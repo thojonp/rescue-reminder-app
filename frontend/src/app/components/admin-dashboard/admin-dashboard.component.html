@@ -1,3 +1,5 @@
+<app-messages></app-messages>
+
 <div class="admin-container">
   <div class="admin-header">
     <div class="header-content">
@@ -17,37 +19,33 @@
   </div>
 
   <div class="admin-content">
-    @if (message) {
-      <div [class]="'alert alert-' + messageType">{{ message }}</div>
-    }
-
     <!-- Statistics -->
     <div class="stats-grid">
       <div class="stat-card">
         <div class="stat-icon">👥</div>
         <div class="stat-info">
-          <div class="stat-value">{{ getActiveUsers() }}/{{ users.length }}</div>
+          <div class="stat-value">{{ activeUsers$ | async }}/{{ (users$ | async)?.length || 0 }}</div>
           <div class="stat-label">Aktive Benutzer</div>
         </div>
       </div>
       <div class="stat-card">
         <div class="stat-icon">📦</div>
         <div class="stat-info">
-          <div class="stat-value">{{ getActiveDevices() }}/{{ getTotalDevices() }}</div>
+          <div class="stat-value">{{ activeDevices$ | async }}/{{ totalDevices$ | async }}</div>
           <div class="stat-label">Aktive Geräte</div>
         </div>
       </div>
       <div class="stat-card stat-warning">
         <div class="stat-icon">⚠️</div>
         <div class="stat-info">
-          <div class="stat-value">{{ getUpcomingDevices() }}</div>
+          <div class="stat-value">{{ upcomingDevices$ | async }}</div>
           <div class="stat-label">Bald fällig</div>
         </div>
       </div>
       <div class="stat-card stat-danger">
         <div class="stat-icon">🚨</div>
         <div class="stat-info">
-          <div class="stat-value">{{ getOverdueDevices() }}</div>
+          <div class="stat-value">{{ overdueDevices$ | async }}</div>
           <div class="stat-label">Überfällig</div>
         </div>
       </div>
@@ -56,10 +54,10 @@
     <!-- Tabs -->
     <div class="tabs">
       <button [class.active]="activeTab === 'devices'" (click)="switchTab('devices')" class="tab-button">
-        📦 Alle Geräte ({{ devices.length }})
+        📦 Alle Geräte ({{ (devices$ | async)?.length || 0 }})
       </button>
       <button [class.active]="activeTab === 'users'" (click)="switchTab('users')" class="tab-button">
-        👥 Benutzer ({{ users.length }})
+        👥 Benutzer ({{ (users$ | async)?.length || 0 }})
       </button>
       <button [class.active]="activeTab === 'settings'" (click)="switchTab('settings')" class="tab-button">
         ⚙️ Einstellungen
@@ -73,15 +71,15 @@
           <label>Filter nach Benutzer:</label>
           <select (change)="filterByUser($any($event.target).value ? +$any($event.target).value : null)" class="filter-select">
             <option [value]="null">Alle Benutzer</option>
-            @for (user of users; track user.id) {
+            @for (user of users$ | async; track user.id) {
               <option [value]="user.id">{{ user.first_name }} {{ user.last_name }} ({{ user.device_count }})</option>
             }
           </select>
         </div>
 
-        @if (isLoadingDevices) {
+        @if (isLoadingDevices$ | async) {
           <div class="loading">Lade Geräte...</div>
-        } @else if (filteredDevices.length === 0) {
+        } @else if ((filteredDevices$ | async)?.length === 0) {
           <div class="empty-state"><p>Keine Geräte gefunden</p></div>
         } @else {
           <div class="table-container">
@@ -100,7 +98,7 @@
                 </tr>
               </thead>
               <tbody>
-                @for (device of filteredDevices; track device.id) {
+                @for (device of filteredDevices$ | async; track device.id) {
                   <tr [class]="getStatusClass(device)">
                     <td class="device-name">
                       {{ device.device_name }}
@@ -151,9 +149,9 @@
     <!-- Users Tab -->
     @if (activeTab === 'users') {
       <div class="tab-content">
-        @if (isLoadingUsers) {
+        @if (isLoadingUsers$ | async) {
           <div class="loading">Lade Benutzer...</div>
-        } @else if (users.length === 0) {
+        } @else if ((users$ | async)?.length === 0) {
           <div class="empty-state"><p>Noch keine Benutzer registriert</p></div>
         } @else {
           <div class="table-container">
@@ -170,7 +168,7 @@
                 </tr>
               </thead>
               <tbody>
-                @for (user of users; track user.id) {
+                @for (user of users$ | async; track user.id) {
                   <tr>
                     <td class="user-name-cell">{{ user.first_name }} {{ user.last_name }}</td>
                     <td>{{ user.email }}</td>
@@ -342,20 +340,20 @@
   }
 
   <!-- Modal: User Devices -->
-  @if (showUserDevicesModal && selectedUserId) {
+  @if (showUserDevicesModal && (selectedUserId$ | async)) {
     <div class="modal-overlay" (click)="closeUserDevicesModal()">
       <div class="modal-content modal-xlarge" (click)="$event.stopPropagation()">
         <div class="modal-header">
-          <h2>Geräte von {{ filteredDevices[0]?.user_first_name }} {{ filteredDevices[0]?.user_last_name }}</h2>
+          <h2>Geräte des Benutzers</h2>
           <button (click)="closeUserDevicesModal()" class="btn-close">✕</button>
         </div>
 
         <div class="modal-body">
-          @if (filteredDevices.length === 0) {
+          @if ((filteredDevices$ | async)?.length === 0) {
             <p class="text-muted">Keine Geräte gefunden</p>
           } @else {
             <div class="devices-list">
-              @for (device of filteredDevices; track device.id) {
+              @for (device of filteredDevices$ | async; track device.id) {
                 <div class="device-item" [class]="getStatusClass(device)">
                   <div class="device-item-header">
                     <div>

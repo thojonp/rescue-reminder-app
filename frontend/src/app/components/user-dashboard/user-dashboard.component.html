@@ -1,3 +1,5 @@
+<app-messages></app-messages>
+
 <div class="dashboard-container">
   <div class="dashboard-header">
     <div class="header-content">
@@ -19,17 +21,13 @@
   </div>
 
   <div class="dashboard-content">
-    @if (message) {
-      <div [class]="'alert alert-' + messageType">{{ message }}</div>
-    }
-
     <div class="action-bar">
       <button (click)="openAddForm()" class="btn-primary">➕ Neues Gerät hinzufügen</button>
     </div>
 
-    @if (isLoadingDevices) {
+    @if (isLoadingDevices$ | async) {
       <div class="loading">Lade Geräte...</div>
-    } @else if (devices.length === 0) {
+    } @else if ((devices$ | async)?.length === 0) {
       <div class="empty-state">
         <div class="empty-icon">📦</div>
         <h3>Noch keine Geräte registriert</h3>
@@ -37,7 +35,7 @@
       </div>
     } @else {
       <div class="devices-grid">
-        @for (device of devices; track device.id) {
+        @for (device of devices$ | async; track device.id) {
           <div class="device-card" [class]="getStatusClass(device)">
             <div class="device-header">
               <div>

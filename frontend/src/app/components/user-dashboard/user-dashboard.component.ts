@@ -1,27 +1,41 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { CommonModule, AsyncPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { BehaviorSubject, Subject, Observable } from 'rxjs';
+import { takeUntil, finalize, tap } from 'rxjs/operators';
 import { AuthService } from '../../services/auth.service';
 import { DeviceService } from '../../services/device.service';
 import { UserService } from '../../services/user.service';
+import { MessageService } from '../../services/message.service';
 import { Device, DeviceFormData } from '../../models/device.model';
 import { User } from '../../models/user.model';
+import { MessagesComponent } from '../shared/messages.component';
 
 @Component({
   selector: 'app-user-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, AsyncPipe, MessagesComponent],
   templateUrl: './user-dashboard.component.html',
   styleUrls: ['./user-dashboard.component.css']
 })
-export class UserDashboardComponent implements OnInit {
+export class UserDashboardComponent implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
+  
+  // Observable für Geräte
+  private devicesSubject = new BehaviorSubject<Device[]>([]);
+  devices$: Observable<Device[]> = this.devicesSubject.asObservable();
+  
+  // Observable für Loading-State
+  private isLoadingDevicesSubject = new BehaviorSubject<boolean>(true);
+  isLoadingDevices$: Observable<boolean> = this.isLoadingDevicesSubject.asObservable();
+
   currentUser: User | null = null;
-  devices: Device[] = [];
   showAddForm = false;
   showAccountSettings = false;
   editingDevice: Device | null = null;
   newEmail = '';
+  isLoading = false;
 
   deviceForm: DeviceFormData = {
     name: '',
@@ -38,45 +52,49 @@ export class UserDashboardComponent implements OnInit {
     { value: 12, label: '12 Monate (Standard)' }
   ];
 
-  message = '';
-  messageType: 'success' | 'error' = 'success';
-  isLoading = false;
-  isLoadingDevices = true;
-
   constructor(
     private authService: AuthService,
     private deviceService: DeviceService,
     private userService: UserService,
-    private router: Router,
-    private cdr: ChangeDetectorRef
+    private messageService: MessageService,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
-    this.authService.currentUser$.subscribe(user => {
-      this.currentUser = user;
-      if (user) {
-        this.newEmail = user.email;
-      }
-    });
+    this.authService.currentUser$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(user => {
+        this.currentUser = user;
+        if (user) {
+          this.newEmail = user.email;
+        }
+      });
+    
     this.loadDevices();
   }
 
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   loadDevices(): void {
-    this.isLoadingDevices = true;
+    this.isLoadingDevicesSubject.next(true);
     
-    this.deviceService.getMyDevices().subscribe({
-      next: (devices) => {
-        this.devices = [...devices];
-        this.isLoadingDevices = false;
-        this.cdr.detectChanges();
-      },
-      error: (error) => {
-        this.showMessage('Fehler beim Laden der Geräte', 'error');
-        this.isLoadingDevices = false;
-        this.devices = [];
-        this.cdr.detectChanges();
-      }
-    });
+    this.deviceService.getMyDevices()
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => this.isLoadingDevicesSubject.next(false))
+      )
+      .subscribe({
+        next: (devices) => {
+          this.devicesSubject.next(devices);
+        },
+        error: (error) => {
+          this.messageService.error('Fehler beim Laden der Geräte');
+          this.devicesSubject.next([]);
+        }
+      });
   }
 
   openAddForm(): void {
@@ -117,39 +135,40 @@ export class UserDashboardComponent implements OnInit {
 
   onSubmit(): void {
     if (!this.deviceForm.name || !this.deviceForm.last_packed) {
-      this.showMessage('Name und Packdatum sind erforderlich', 'error');
+      this.messageService.error('Name und Packdatum sind erforderlich');
       return;
     }
 
     this.isLoading = true;
 
-    if (this.editingDevice) {
-      this.deviceService.updateDevice(this.editingDevice.id!, this.deviceForm).subscribe({
-        next: () => {
-          this.showMessage('Gerät erfolgreich aktualisiert', 'success');
+    const request$ = this.editingDevice
+      ? this.deviceService.updateDevice(this.editingDevice.id!, this.deviceForm)
+      : this.deviceService.createDevice(this.deviceForm);
+
+    request$
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => {
           this.isLoading = false;
+        })
+      )
+      .subscribe({
+        next: () => {
+          const msg = this.editingDevice 
+            ? 'Gerät erfolgreich aktualisiert' 
+            : 'Gerät erfolgreich hinzugefügt';
+          this.messageService.success(msg);
           this.closeForm();
           this.loadDevices();
         },
         error: (error) => {
-          this.showMessage(error.error?.error || 'Fehler beim Aktualisieren', 'error');
-          this.isLoading = false;
+          const errorMsg = this.messageService.extractErrorMessage(
+            error,
+            this.editingDevice ? 'Fehler beim Aktualisieren' : 'Fehler beim Hinzufügen'
+          );
+          this.messageService.error(errorMsg);
         }
       });
-    } else {
-      this.deviceService.createDevice(this.deviceForm).subscribe({
-        next: () => {
-          this.showMessage('Gerät erfolgreich hinzugefügt', 'success');
-          this.isLoading = false;
-          this.closeForm();
-          this.loadDevices();
-        },
-        error: (error) => {
-          this.showMessage(error.error?.error || 'Fehler beim Hinzufügen', 'error');
-          this.isLoading = false;
-        }
-      });
-    }
   }
 
   deleteDevice(device: Device): void {
@@ -157,15 +176,18 @@ export class UserDashboardComponent implements OnInit {
       return;
     }
 
-    this.deviceService.deleteDevice(device.id!).subscribe({
-      next: () => {
-        this.showMessage('Gerät erfolgreich gelöscht', 'success');
-        this.loadDevices();
-      },
-      error: (error) => {
-        this.showMessage(error.error?.error || 'Fehler beim Löschen', 'error');
-      }
-    });
+    this.deviceService.deleteDevice(device.id!)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.messageService.success('Gerät erfolgreich gelöscht');
+          this.loadDevices();
+        },
+        error: (error) => {
+          const errorMsg = this.messageService.extractErrorMessage(error, 'Fehler beim Löschen');
+          this.messageService.error(errorMsg);
+        }
+      });
   }
 
   openAccountSettings(): void {
@@ -181,22 +203,25 @@ export class UserDashboardComponent implements OnInit {
 
   updateEmail(): void {
     if (!this.newEmail || !this.newEmail.includes('@')) {
-      this.showMessage('Bitte gültige Email-Adresse eingeben', 'error');
+      this.messageService.error('Bitte gültige Email-Adresse eingeben');
       return;
     }
 
-    this.userService.updateMyEmail(this.newEmail).subscribe({
-      next: () => {
-        this.showMessage('Email erfolgreich aktualisiert', 'success');
-        if (this.currentUser) {
-          this.currentUser.email = this.newEmail;
-          localStorage.setItem('currentUser', JSON.stringify(this.currentUser));
+    this.userService.updateMyEmail(this.newEmail)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.messageService.success('Email erfolgreich aktualisiert');
+          if (this.currentUser) {
+            this.currentUser.email = this.newEmail;
+            localStorage.setItem('currentUser', JSON.stringify(this.currentUser));
+          }
+        },
+        error: (error) => {
+          const errorMsg = this.messageService.extractErrorMessage(error, 'Fehler beim Aktualisieren');
+          this.messageService.error(errorMsg);
         }
-      },
-      error: (error) => {
-        this.showMessage(error.error?.error || 'Fehler beim Aktualisieren', 'error');
-      }
-    });
+      });
   }
 
   deactivateAccount(): void {
@@ -204,16 +229,21 @@ export class UserDashboardComponent implements OnInit {
       return;
     }
 
-    this.userService.deactivateMyAccount().subscribe({
-      next: () => {
-        alert('Ihr Konto wurde deaktiviert.');
-        this.authService.logout();
-        this.router.navigate(['/login']);
-      },
-      error: (error) => {
-        this.showMessage(error.error?.error || 'Fehler', 'error');
-      }
-    });
+    this.userService.deactivateMyAccount()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.messageService.success('Ihr Konto wurde deaktiviert.');
+          setTimeout(() => {
+            this.authService.logout();
+            this.router.navigate(['/login']);
+          }, 1500);
+        },
+        error: (error) => {
+          const errorMsg = this.messageService.extractErrorMessage(error, 'Fehler');
+          this.messageService.error(errorMsg);
+        }
+      });
   }
 
   deleteAccount(): void {
@@ -221,16 +251,21 @@ export class UserDashboardComponent implements OnInit {
       return;
     }
 
-    this.userService.deleteMyAccount().subscribe({
-      next: () => {
-        alert('Ihr Konto wurde gelöscht.');
-        this.authService.logout();
-        this.router.navigate(['/login']);
-      },
-      error: (error) => {
-        this.showMessage(error.error?.error || 'Fehler', 'error');
-      }
-    });
+    this.userService.deleteMyAccount()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.messageService.success('Ihr Konto wurde gelöscht.');
+          setTimeout(() => {
+            this.authService.logout();
+            this.router.navigate(['/login']);
+          }, 1500);
+        },
+        error: (error) => {
+          const errorMsg = this.messageService.extractErrorMessage(error, 'Fehler');
+          this.messageService.error(errorMsg);
+        }
+      });
   }
 
   getNextDueDate(device: Device): Date {
@@ -258,14 +293,6 @@ export class UserDashboardComponent implements OnInit {
     if (days === 0) return 'Heute fällig';
     if (days === 1) return 'Morgen fällig';
     return `Noch ${days} Tage`;
-  }
-
-  showMessage(msg: string, type: 'success' | 'error'): void {
-    this.message = msg;
-    this.messageType = type;
-    setTimeout(() => {
-      this.message = '';
-    }, 5000);
   }
 
   logout(): void {

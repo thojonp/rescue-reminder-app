@@ -1,3 +1,5 @@
+<app-messages></app-messages>
+
 <div class="register-container">
   <div class="register-card">
     <div class="register-header">
@@ -9,12 +11,6 @@
       <h1>🚨 Konto erstellen</h1>
       <p>Registrieren Sie sich für das Rettungsgerät Management</p>
     </div>
-
-    @if (errorMessage) {
-      <div class="alert alert-error">
-        {{ errorMessage }}
-      </div>
-    }
 
     <form (ngSubmit)="onSubmit()" #registerForm="ngForm">
       <div class="form-row">
