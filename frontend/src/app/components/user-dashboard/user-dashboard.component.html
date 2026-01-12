@@ -122,7 +122,7 @@
             <label for="reminder_interval">Erinnerungsintervall *</label>
             <select id="reminder_interval" name="reminder_interval" [(ngModel)]="deviceForm.reminder_interval" required class="form-control">
               @for (interval of reminderIntervals; track interval.value) {
-                <option [value]="interval.value">{{ interval.label }}</option>
+                <option [ngValue]="interval.value">{{ interval.label }}</option>
               }
             </select>
           </div>
